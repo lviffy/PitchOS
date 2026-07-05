@@ -10,19 +10,19 @@
     "semantic_hash": "dfa1f5f6a7037bf39dc510f30b180002"
   },
   "apps/client/next-env.d.ts": {
-    "mtime": 1783239999.7547548,
+    "mtime": 1783248379.324452,
     "ast_hash": "2a74d3909800ca5467fa83b0ab4a4890",
     "semantic_hash": "2a74d3909800ca5467fa83b0ab4a4890"
   },
   "apps/client/next.config.ts": {
-    "mtime": 1783239999.7497978,
-    "ast_hash": "9b77af189a21a7a64e4bd7a426f64176",
-    "semantic_hash": "9b77af189a21a7a64e4bd7a426f64176"
+    "mtime": 1783248034.879059,
+    "ast_hash": "61444ae4f7173edf2c63762f9f261c35",
+    "semantic_hash": "61444ae4f7173edf2c63762f9f261c35"
   },
   "apps/client/package.json": {
-    "mtime": 1783240402.28376,
-    "ast_hash": "f0e898d458bf425f0c142b2bb657aaa5",
-    "semantic_hash": "f0e898d458bf425f0c142b2bb657aaa5"
+    "mtime": 1783248219.8069108,
+    "ast_hash": "31697018dd98822a67bc3f1f1e947f0e",
+    "semantic_hash": "31697018dd98822a67bc3f1f1e947f0e"
   },
   "apps/client/postcss.config.mjs": {
     "mtime": 1783239999.7547374,
@@ -30,14 +30,14 @@
     "semantic_hash": "239f3ebf717465dc636818a1a619398d"
   },
   "apps/client/src/app/layout.tsx": {
-    "mtime": 1783239999.7581544,
-    "ast_hash": "94c34ef68b3949a75807a0211ec2273c",
-    "semantic_hash": "94c34ef68b3949a75807a0211ec2273c"
+    "mtime": 1783244339.8743887,
+    "ast_hash": "d86b907e092d86a08dfd80435a4a4f01",
+    "semantic_hash": "d86b907e092d86a08dfd80435a4a4f01"
   },
   "apps/client/src/app/page.tsx": {
-    "mtime": 1783241669.0914302,
-    "ast_hash": "52f43d3df23c102963726c03d140d52b",
-    "semantic_hash": "52f43d3df23c102963726c03d140d52b"
+    "mtime": 1783248388.9724746,
+    "ast_hash": "782286ffade897fcac5c26abcefc1002",
+    "semantic_hash": "782286ffade897fcac5c26abcefc1002"
   },
   "apps/client/src/features/ai/AICoachPanel.tsx": {
     "mtime": 1783241094.7904103,
@@ -45,9 +45,9 @@
     "semantic_hash": "b9f3f211f9f42f8d11ce6742329f9f7c"
   },
   "apps/client/src/features/ai/qvac-service.ts": {
-    "mtime": 1783241693.5425677,
-    "ast_hash": "076e44e1a0a349f54603ed891dbef796",
-    "semantic_hash": "076e44e1a0a349f54603ed891dbef796"
+    "mtime": 1783249234.0237708,
+    "ast_hash": "126be06d2cedd81b251e30a429189b58",
+    "semantic_hash": "126be06d2cedd81b251e30a429189b58"
   },
   "apps/client/src/features/club/AnalyticsDashboard.tsx": {
     "mtime": 1783241706.01668,
@@ -60,14 +60,14 @@
     "semantic_hash": "234d6a10b416f76d5c04b9068334ede5"
   },
   "apps/client/src/features/club/club-store.ts": {
-    "mtime": 1783240922.2394245,
-    "ast_hash": "083594fbf3fc964907f7221ff83faa6f",
-    "semantic_hash": "083594fbf3fc964907f7221ff83faa6f"
+    "mtime": 1783249213.4257548,
+    "ast_hash": "d231c28e61ee1072cd7a772b819af2ec",
+    "semantic_hash": "d231c28e61ee1072cd7a772b819af2ec"
   },
   "apps/client/src/features/match/MatchCenter.tsx": {
-    "mtime": 1783241046.2965515,
-    "ast_hash": "966a90d8a8ff58c1831606969822ac26",
-    "semantic_hash": "966a90d8a8ff58c1831606969822ac26"
+    "mtime": 1783248593.3159652,
+    "ast_hash": "b1606c40508724cffe03823c6eb8f3b1",
+    "semantic_hash": "b1606c40508724cffe03823c6eb8f3b1"
   },
   "apps/client/src/features/match/match-store.ts": {
     "mtime": 1783240984.0694818,
@@ -75,39 +75,39 @@
     "semantic_hash": "dbc8bdecb16477bac64673cbbb18886a"
   },
   "apps/client/src/features/prediction/PredictionView.tsx": {
-    "mtime": 1783241083.9994168,
-    "ast_hash": "59de48e5a0ada218fcd66a89bb11a332",
-    "semantic_hash": "59de48e5a0ada218fcd66a89bb11a332"
+    "mtime": 1783243573.8103201,
+    "ast_hash": "2717d73f8257cc9531842e24b52191b5",
+    "semantic_hash": "2717d73f8257cc9531842e24b52191b5"
   },
   "apps/client/src/features/prediction/prediction-store.ts": {
-    "mtime": 1783241027.62471,
-    "ast_hash": "92f5f645974b0f73b96f3f74b669c907",
-    "semantic_hash": "92f5f645974b0f73b96f3f74b669c907"
+    "mtime": 1783249204.3727477,
+    "ast_hash": "68c5c89efc968265fc66e105f0b2eda3",
+    "semantic_hash": "68c5c89efc968265fc66e105f0b2eda3"
   },
   "apps/client/src/features/tournament/TournamentView.tsx": {
-    "mtime": 1783240993.5182521,
-    "ast_hash": "ab56895f7fb16a25a434f808bb0b9871",
-    "semantic_hash": "ab56895f7fb16a25a434f808bb0b9871"
+    "mtime": 1783243521.3672287,
+    "ast_hash": "1a5fa44cedb8e5f76dd567027944fbe2",
+    "semantic_hash": "1a5fa44cedb8e5f76dd567027944fbe2"
   },
   "apps/client/src/features/tournament/tournament-store.ts": {
-    "mtime": 1783241018.460819,
-    "ast_hash": "cc83e1de08e2cb3100e9e1d004f15c7c",
-    "semantic_hash": "cc83e1de08e2cb3100e9e1d004f15c7c"
+    "mtime": 1783249194.57774,
+    "ast_hash": "d752cfe787020d3e37bc030d3aa4f6c9",
+    "semantic_hash": "d752cfe787020d3e37bc030d3aa4f6c9"
   },
   "apps/client/src/features/wallet/WalletSetup.tsx": {
-    "mtime": 1783240561.324637,
-    "ast_hash": "c6b58f8e1ee6f4b81a8c9f887ac2a804",
-    "semantic_hash": "c6b58f8e1ee6f4b81a8c9f887ac2a804"
+    "mtime": 1783249179.2067273,
+    "ast_hash": "27293c30bbd5d9e0c0b2a66011cea2ce",
+    "semantic_hash": "27293c30bbd5d9e0c0b2a66011cea2ce"
   },
   "apps/client/src/features/wallet/wallet-store.ts": {
-    "mtime": 1783240418.8783448,
-    "ast_hash": "2000608407ab021454266040a99a474b",
-    "semantic_hash": "2000608407ab021454266040a99a474b"
+    "mtime": 1783249165.0267158,
+    "ast_hash": "373efd594f0f2650a9abaae8ae8deb96",
+    "semantic_hash": "373efd594f0f2650a9abaae8ae8deb96"
   },
   "apps/client/src/lib/db.ts": {
-    "mtime": 1783240137.8967977,
-    "ast_hash": "2412dc1019cf0aaebd495f74a888526f",
-    "semantic_hash": "2412dc1019cf0aaebd495f74a888526f"
+    "mtime": 1783249153.0767057,
+    "ast_hash": "4e207baf71cf197cebda52db3e1f9b55",
+    "semantic_hash": "4e207baf71cf197cebda52db3e1f9b55"
   },
   "apps/client/tsconfig.json": {
     "mtime": 1783240406.977814,
@@ -120,19 +120,19 @@
     "semantic_hash": "dfa1f5f6a7037bf39dc510f30b180002"
   },
   "apps/next-app/next-env.d.ts": {
-    "mtime": 1783241267.22018,
+    "mtime": 1783248414.9372404,
     "ast_hash": "2a74d3909800ca5467fa83b0ab4a4890",
     "semantic_hash": "2a74d3909800ca5467fa83b0ab4a4890"
   },
   "apps/next-app/next.config.ts": {
-    "mtime": 1783241267.2200682,
-    "ast_hash": "9b77af189a21a7a64e4bd7a426f64176",
-    "semantic_hash": "9b77af189a21a7a64e4bd7a426f64176"
+    "mtime": 1783242401.3225367,
+    "ast_hash": "6e7368729ce21f7a509c3683c1c5e071",
+    "semantic_hash": "6e7368729ce21f7a509c3683c1c5e071"
   },
   "apps/next-app/package.json": {
-    "mtime": 1783241279.0592015,
-    "ast_hash": "59804dadbb0db344e508e36d74cba06c",
-    "semantic_hash": "59804dadbb0db344e508e36d74cba06c"
+    "mtime": 1783248233.1559618,
+    "ast_hash": "f6ec587fd0c29b89bcb6ecec6a776e27",
+    "semantic_hash": "f6ec587fd0c29b89bcb6ecec6a776e27"
   },
   "apps/next-app/postcss.config.mjs": {
     "mtime": 1783241267.2199745,
@@ -140,9 +140,9 @@
     "semantic_hash": "239f3ebf717465dc636818a1a619398d"
   },
   "apps/next-app/src/app/api/admin/stats/route.ts": {
-    "mtime": 1783241617.2631388,
-    "ast_hash": "ded72d1cc5b003dc26edc3bc2c030f13",
-    "semantic_hash": "ded72d1cc5b003dc26edc3bc2c030f13"
+    "mtime": 1783242275.8905125,
+    "ast_hash": "b1a3446c805a67ed1017bf051a2c1a38",
+    "semantic_hash": "b1a3446c805a67ed1017bf051a2c1a38"
   },
   "apps/next-app/src/app/api/auth/challenge/route.ts": {
     "mtime": 1783241306.145362,
@@ -165,14 +165,14 @@
     "semantic_hash": "3c10bb95c34f341bff4b48c68f3be368"
   },
   "apps/next-app/src/app/api/notifications/subscribe/route.ts": {
-    "mtime": 1783241340.6935644,
-    "ast_hash": "e65ea286f34f9439f69b382667ee43c7",
-    "semantic_hash": "e65ea286f34f9439f69b382667ee43c7"
+    "mtime": 1783242271.1474724,
+    "ast_hash": "c6f57330c42fc987fbb6015cfa95a17e",
+    "semantic_hash": "c6f57330c42fc987fbb6015cfa95a17e"
   },
   "apps/next-app/src/app/api/tournaments/route.ts": {
-    "mtime": 1783241326.432481,
-    "ast_hash": "7fddcf36f3ce6874e3ec89a5d74c5cdd",
-    "semantic_hash": "7fddcf36f3ce6874e3ec89a5d74c5cdd"
+    "mtime": 1783242566.8638148,
+    "ast_hash": "9de71c7bd8dc6e885709c42e77bc91ef",
+    "semantic_hash": "9de71c7bd8dc6e885709c42e77bc91ef"
   },
   "apps/next-app/src/app/api/tournaments/store.ts": {
     "mtime": 1783241320.963449,
@@ -210,9 +210,9 @@
     "semantic_hash": "afef9c7af8a0c09a336e94a17bb26d3c"
   },
   "package.json": {
-    "mtime": 1783240326.4778938,
-    "ast_hash": "f5c19f0629bcc93c5f4a529857f57dd3",
-    "semantic_hash": "f5c19f0629bcc93c5f4a529857f57dd3"
+    "mtime": 1783248239.7779865,
+    "ast_hash": "77dd96a0619a79ea72062be92f6fbc55",
+    "semantic_hash": "77dd96a0619a79ea72062be92f6fbc55"
   },
   "packages/shared-types/package.json": {
     "mtime": 1783240064.49601,
@@ -225,9 +225,9 @@
     "semantic_hash": "ee2b83c27e32a0129cf74c6e8d295089"
   },
   "packages/shared-types/src/index.ts": {
-    "mtime": 1783240218.122678,
-    "ast_hash": "39b2e2f0224a28d01531affcffa3d886",
-    "semantic_hash": "39b2e2f0224a28d01531affcffa3d886"
+    "mtime": 1783249138.405693,
+    "ast_hash": "250a13035cfcf915d42b67d0c7dfdc57",
+    "semantic_hash": "250a13035cfcf915d42b67d0c7dfdc57"
   },
   "packages/shared-types/tsconfig.json": {
     "mtime": 1783240068.6680543,
@@ -235,19 +235,19 @@
     "semantic_hash": "75f2a7ef93a98a39a120cd6f1344f75a"
   },
   "packages/sync-adapter/package.json": {
-    "mtime": 1783240154.8169818,
-    "ast_hash": "f069cf70f4ec741086ff26e6b7af3c2a",
-    "semantic_hash": "f069cf70f4ec741086ff26e6b7af3c2a"
+    "mtime": 1783247813.6123092,
+    "ast_hash": "13052d343df67b1bca12b381ace30cdf",
+    "semantic_hash": "13052d343df67b1bca12b381ace30cdf"
   },
   "packages/sync-adapter/src/index.ts": {
-    "mtime": 1783240449.603905,
-    "ast_hash": "d2ad087d097d48cf19db5193b9559be8",
-    "semantic_hash": "d2ad087d097d48cf19db5193b9559be8"
+    "mtime": 1783248074.6682675,
+    "ast_hash": "3fa01e7c052b7b9f05036e3240abd65f",
+    "semantic_hash": "3fa01e7c052b7b9f05036e3240abd65f"
   },
   "packages/sync-adapter/src/p2p-client.ts": {
-    "mtime": 1783240439.3950458,
-    "ast_hash": "4d45bd35c6446f8fe66597c29246165e",
-    "semantic_hash": "4d45bd35c6446f8fe66597c29246165e"
+    "mtime": 1783248084.4353166,
+    "ast_hash": "97090571d402fa5b5aa461bab6f11bc4",
+    "semantic_hash": "97090571d402fa5b5aa461bab6f11bc4"
   },
   "packages/sync-adapter/tsconfig.json": {
     "mtime": 1783240158.7230244,
@@ -255,14 +255,14 @@
     "semantic_hash": "75f2a7ef93a98a39a120cd6f1344f75a"
   },
   "packages/wallet-adapter/package.json": {
-    "mtime": 1783240387.045585,
-    "ast_hash": "82a48ceab394fd89d0e89ef417235cfa",
-    "semantic_hash": "82a48ceab394fd89d0e89ef417235cfa"
+    "mtime": 1783247811.2565496,
+    "ast_hash": "d183948041ca6e2c2ee93a609a92111d",
+    "semantic_hash": "d183948041ca6e2c2ee93a609a92111d"
   },
   "packages/wallet-adapter/src/index.ts": {
-    "mtime": 1783240397.2527022,
-    "ast_hash": "7705e5403bf49b40cbec1b96ee2ef2ba",
-    "semantic_hash": "7705e5403bf49b40cbec1b96ee2ef2ba"
+    "mtime": 1783248066.894228,
+    "ast_hash": "4c799254f361aaafe44a9ed3b3f15ee9",
+    "semantic_hash": "4c799254f361aaafe44a9ed3b3f15ee9"
   },
   "packages/wallet-adapter/tsconfig.json": {
     "mtime": 1783240391.6006372,
@@ -278,16 +278,6 @@
     "mtime": 1783240111.7815154,
     "ast_hash": "89e9370fa8f7fd86e4139757780873c1",
     "semantic_hash": "89e9370fa8f7fd86e4139757780873c1"
-  },
-  "PitchOS_Architecture.md": {
-    "mtime": 1783239505.7403252,
-    "ast_hash": "7b6174aa97c253a1a82f0d43544d3c61",
-    "semantic_hash": "7b6174aa97c253a1a82f0d43544d3c61"
-  },
-  "PitchOS_PRD.md": {
-    "mtime": 1783238476.2824814,
-    "ast_hash": "8bb6a66d3f6a61d07d2a32dfc435ee45",
-    "semantic_hash": "8bb6a66d3f6a61d07d2a32dfc435ee45"
   },
   "README.md": {
     "mtime": 1783241181.5346231,
@@ -323,11 +313,6 @@
     "mtime": 1783241267.2199078,
     "ast_hash": "f15aaa42d5d299d091b1171097ea56ad",
     "semantic_hash": "f15aaa42d5d299d091b1171097ea56ad"
-  },
-  "task.md": {
-    "mtime": 1783239875.188077,
-    "ast_hash": "f5b1d08e6c4cc2c1089c74a0f6a2abd4",
-    "semantic_hash": "f5b1d08e6c4cc2c1089c74a0f6a2abd4"
   },
   "apps/client/public/file.svg": {
     "mtime": 1783239999.7230768,
@@ -378,5 +363,85 @@
     "mtime": 1783241267.2204044,
     "ast_hash": "a2760511c65806022ad20adf74370ff3",
     "semantic_hash": "a2760511c65806022ad20adf74370ff3"
+  },
+  "apps/client/components.json": {
+    "mtime": 1783244213.2690685,
+    "ast_hash": "fc5c9e9a7b93eeb2f7b4e1ce0959e4a6",
+    "semantic_hash": "fc5c9e9a7b93eeb2f7b4e1ce0959e4a6"
+  },
+  "apps/client/src/components/ui/badge.tsx": {
+    "mtime": 1783244223.65001,
+    "ast_hash": "e4ec840217040d5630ee6ed7213a1d72",
+    "semantic_hash": "e4ec840217040d5630ee6ed7213a1d72"
+  },
+  "apps/client/src/components/ui/button.tsx": {
+    "mtime": 1783244217.6428802,
+    "ast_hash": "e04ce5251d6b0dd04020988126c905e9",
+    "semantic_hash": "e04ce5251d6b0dd04020988126c905e9"
+  },
+  "apps/client/src/components/ui/card.tsx": {
+    "mtime": 1783244223.5920105,
+    "ast_hash": "bd5f88ad2d983dd6c4561d63824c80ba",
+    "semantic_hash": "bd5f88ad2d983dd6c4561d63824c80ba"
+  },
+  "apps/client/src/decs.d.ts": {
+    "mtime": 1783248115.3104653,
+    "ast_hash": "44b9cdf2f6cb054b1ff77e12f194ddc7",
+    "semantic_hash": "44b9cdf2f6cb054b1ff77e12f194ddc7"
+  },
+  "apps/client/src/features/admin/AdminDashboard.tsx": {
+    "mtime": 1783248579.415937,
+    "ast_hash": "9b7e35ec0b59cc0ae6c961a85e8e7a5a",
+    "semantic_hash": "9b7e35ec0b59cc0ae6c961a85e8e7a5a"
+  },
+  "apps/client/src/lib/empty-shim.js": {
+    "mtime": 1783247984.5237722,
+    "ast_hash": "2f3d1a73eac1104259f9bfd70dd740d3",
+    "semantic_hash": "2f3d1a73eac1104259f9bfd70dd740d3"
+  },
+  "apps/client/src/lib/qvac-browser-shim.js": {
+    "mtime": 1783248030.0170326,
+    "ast_hash": "a16a6dcfbb80d6a9c7b5b9db4e46757f",
+    "semantic_hash": "a16a6dcfbb80d6a9c7b5b9db4e46757f"
+  },
+  "apps/client/src/lib/telemetry.ts": {
+    "mtime": 1783242541.789625,
+    "ast_hash": "0a730e50588fbe81a754e7f7ed2d20a3",
+    "semantic_hash": "0a730e50588fbe81a754e7f7ed2d20a3"
+  },
+  "apps/client/src/lib/utils.ts": {
+    "mtime": 1783244217.6979496,
+    "ast_hash": "5a6fd53fdcf2be529e9cc0b718fde352",
+    "semantic_hash": "5a6fd53fdcf2be529e9cc0b718fde352"
+  },
+  "apps/next-app/db/schema.sql": {
+    "mtime": 1783242243.9742405,
+    "ast_hash": "15a15fc406a82bdd93eacc83218ad66b",
+    "semantic_hash": "15a15fc406a82bdd93eacc83218ad66b"
+  },
+  "apps/next-app/src/app/api/telemetry/route.ts": {
+    "mtime": 1783248567.0909114,
+    "ast_hash": "03bed99db13410bce8b3cdc76150b95a",
+    "semantic_hash": "03bed99db13410bce8b3cdc76150b95a"
+  },
+  "apps/next-app/src/lib/db.ts": {
+    "mtime": 1783242589.2289834,
+    "ast_hash": "9a28de9060805c9d459f3720e0fac750",
+    "semantic_hash": "9a28de9060805c9d459f3720e0fac750"
+  },
+  "packages/sync-adapter/src/decs.d.ts": {
+    "mtime": 1783247904.5952573,
+    "ast_hash": "780c46728e2588626ffc6ce08a2e2bc6",
+    "semantic_hash": "780c46728e2588626ffc6ce08a2e2bc6"
+  },
+  ".agents/skills/design-taste-frontend/SKILL.md": {
+    "mtime": 1783243934.0647945,
+    "ast_hash": "9d934c4c6c966b866c2775c69ca3a88e",
+    "semantic_hash": "9d934c4c6c966b866c2775c69ca3a88e"
+  },
+  "MOCK_DATA.md": {
+    "mtime": 1783248629.9960363,
+    "ast_hash": "a9856149af5119b847b2d3281b55a950",
+    "semantic_hash": "a9856149af5119b847b2d3281b55a950"
   }
 }
