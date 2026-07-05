@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Match, MatchEventType, RosterEntry } from '@pitchos/shared-types';
 import { db } from '../../lib/db';
 import { createNewMatch, startMatch, logMatchEvent, endMatch } from './match-store';
@@ -10,6 +10,10 @@ export default function MatchCenter() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [players, setPlayers] = useState<RosterEntry[]>([]);
   const [activeMatch, setActiveMatch] = useState<Match | null>(null);
+
+  // Use a ref to track the active match ID so refreshData doesn't depend on activeMatch object
+  const activeMatchIdRef = useRef<string | null>(null);
+  activeMatchIdRef.current = activeMatch?.id ?? null;
 
   // Form states
   const [homeTeam, setHomeTeam] = useState('');
@@ -27,7 +31,7 @@ export default function MatchCenter() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const refreshData = React.useCallback(async () => {
+  const refreshData = useCallback(async () => {
     try {
       const allMatches = await db.matches.toArray();
       setMatches(allMatches);
@@ -35,19 +39,20 @@ export default function MatchCenter() {
       const allPlayers = await db.roster.toArray();
       setPlayers(allPlayers);
 
-      if (activeMatch) {
-        const freshActive = allMatches.find(m => m.id === activeMatch.id);
+      const currentActiveId = activeMatchIdRef.current;
+      if (currentActiveId) {
+        const freshActive = allMatches.find(m => m.id === currentActiveId);
         if (freshActive) setActiveMatch(freshActive);
       }
     } catch (err) {
       console.error(err);
     }
-  }, [activeMatch]);
+  }, []); // No dependencies — uses ref for active ID
 
   useEffect(() => {
-    Promise.resolve().then(() => refreshData());
+    refreshData();
     // Setup interval to poll local DB for live sync updates
-    const interval = setInterval(refreshData, 1500);
+    const interval = setInterval(refreshData, 3000);
     return () => clearInterval(interval);
   }, [refreshData]);
 

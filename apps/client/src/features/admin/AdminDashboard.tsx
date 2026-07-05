@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 interface AdminMetrics {
   activeChallenges: number;
@@ -20,7 +20,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
@@ -48,18 +48,15 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchStats().catch(console.error);
-    }, 0);
-    const interval = setInterval(fetchStats, 10000);
+    fetchStats();
+    const interval = setInterval(fetchStats, 30000); // Reduced from 10s to 30s
     return () => {
-      clearTimeout(timer);
       clearInterval(interval);
     };
-  }, []);
+  }, [fetchStats]);
 
   return (
     <div className="space-y-6">

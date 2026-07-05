@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Tournament, Match } from '@pitchos/shared-types';
 import { db } from '../../lib/db';
 import { createNewTournament, registerTeamInTournament, generateTournamentBrackets } from './tournament-store';
@@ -9,6 +9,10 @@ export default function TournamentView() {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [activeTournament, setActiveTournament] = useState<Tournament | null>(null);
   
+  // Use a ref to track the active tournament ID so refreshData doesn't depend on activeTournament object
+  const activeTournamentIdRef = useRef<string | null>(null);
+  activeTournamentIdRef.current = activeTournament?.id ?? null;
+
   // Form states
   const [name, setName] = useState('');
   const [entryFee, setEntryFee] = useState('50');
@@ -22,13 +26,14 @@ export default function TournamentView() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const refreshData = React.useCallback(async () => {
+  const refreshData = useCallback(async () => {
     try {
       const allTournaments = await db.tournaments.toArray();
       setTournaments(allTournaments);
 
-      if (activeTournament) {
-        const freshActive = allTournaments.find(t => t.id === activeTournament.id);
+      const currentActiveId = activeTournamentIdRef.current;
+      if (currentActiveId) {
+        const freshActive = allTournaments.find(t => t.id === currentActiveId);
         if (freshActive) {
           setActiveTournament(freshActive);
           
@@ -44,11 +49,11 @@ export default function TournamentView() {
     } catch (err) {
       console.error(err);
     }
-  }, [activeTournament]);
+  }, []); // No dependencies — uses ref for active ID
 
   useEffect(() => {
-    Promise.resolve().then(() => refreshData());
-    const interval = setInterval(refreshData, 1500);
+    refreshData();
+    const interval = setInterval(refreshData, 3000);
     return () => clearInterval(interval);
   }, [refreshData]);
 

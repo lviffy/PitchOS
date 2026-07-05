@@ -7,30 +7,46 @@ export class P2PClient {
   private topic: string;
   private core: HypercoreMock;
   private isConnected = false;
+  private isConnecting = false;
   private onConnectionChange: ((connected: boolean) => void) | null = null;
+  private unsubscribeCore: (() => void) | null = null;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(url: string, did: string, topic: string, core: HypercoreMock) {
     this.url = url;
     this.did = did;
     this.topic = topic;
     this.core = core;
+
+    // Subscribe to core ONCE in constructor — not in connect()
+    this.unsubscribeCore = this.core.subscribe((entry) => {
+      this.broadcastAppend(entry);
+    });
   }
 
   connect(onConnectionChange?: (connected: boolean) => void) {
     if (onConnectionChange) {
       this.onConnectionChange = onConnectionChange;
     }
+
+    // Guard against double-connect
+    if (this.isConnecting || this.isConnected) {
+      return;
+    }
+    this.isConnecting = true;
     
     try {
       this.ws = new WebSocket(this.url);
     } catch (e) {
       console.error('[P2PClient] Connection error', e);
+      this.isConnecting = false;
       return;
     }
 
     this.ws.onopen = () => {
       console.log(`[P2PClient] WebSocket connected, registering did=${this.did}`);
       this.isConnected = true;
+      this.isConnecting = false;
       this.onConnectionChange?.(true);
 
       // Register did and topic
@@ -52,7 +68,7 @@ export class P2PClient {
             this.sendSyncPayload();
             break;
 
-          case 'signal':
+          case 'signal': {
             // Receive remote block append
             const { payload } = data;
             if (payload && payload.type === 'sync_append') {
@@ -61,6 +77,7 @@ export class P2PClient {
               this.applySyncEntry(entry);
             }
             break;
+          }
 
           case 'error':
             console.error('[P2PClient] Server error:', data.message);
@@ -74,14 +91,22 @@ export class P2PClient {
     this.ws.onclose = () => {
       console.log('[P2PClient] WebSocket closed, retrying in 5s...');
       this.isConnected = false;
+      this.isConnecting = false;
       this.onConnectionChange?.(false);
-      setTimeout(() => this.connect(), 5000);
+      // Clear any existing reconnect timer before scheduling a new one
+      if (this.reconnectTimer) {
+        clearTimeout(this.reconnectTimer);
+      }
+      this.reconnectTimer = setTimeout(() => {
+        this.reconnectTimer = null;
+        this.connect();
+      }, 5000);
     };
 
-    // Listen to local changes to broadcast
-    this.core.subscribe((entry) => {
-      this.broadcastAppend(entry);
-    });
+    this.ws.onerror = () => {
+      // onclose will fire after onerror, so just mark state here
+      this.isConnecting = false;
+    };
   }
 
   private sendSyncPayload() {
@@ -97,7 +122,7 @@ export class P2PClient {
   }
 
   private broadcastAppend(entry: any) {
-    if (!this.isConnected || !this.ws) return;
+    if (!this.isConnected || !this.ws || this.ws.readyState !== WebSocket.OPEN) return;
 
     // Send payload. In a real system, this is TURN fallback or WebRTC data channel.
     // In our browser/relay MVP setup, we broadcast to all other DIDs in the topic channel.
@@ -120,6 +145,18 @@ export class P2PClient {
   }
 
   disconnect() {
+    // Clean up reconnect timer
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+    // Unsubscribe from core to prevent further broadcasts
+    if (this.unsubscribeCore) {
+      this.unsubscribeCore();
+      this.unsubscribeCore = null;
+    }
+    this.isConnected = false;
+    this.isConnecting = false;
     this.ws?.close();
     this.ws = null;
   }

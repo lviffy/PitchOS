@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { PredictionPool, Match, PredictionMarketType } from '@pitchos/shared-types';
 import { db } from '../../lib/db';
 import { createNewPredictionPool, submitPoolPrediction, resolvePredictionPool } from './prediction-store';
@@ -10,6 +10,12 @@ export default function PredictionView() {
   const [pools, setPools] = useState<PredictionPool[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [activePool, setActivePool] = useState<PredictionPool | null>(null);
+
+  // Use refs to avoid dependency loops
+  const activePoolIdRef = useRef<string | null>(null);
+  activePoolIdRef.current = activePool?.id ?? null;
+  const matchesRef = useRef<Match[]>([]);
+  matchesRef.current = matches;
 
   // Form states
   const [poolName, setPoolName] = useState('');
@@ -28,7 +34,7 @@ export default function PredictionView() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const refreshData = React.useCallback(async () => {
+  const refreshData = useCallback(async () => {
     try {
       const allPools = await db.predictionPools.toArray();
       setPools(allPools);
@@ -36,46 +42,54 @@ export default function PredictionView() {
       const allMatches = await db.matches.toArray();
       setMatches(allMatches);
 
-      if (activePool) {
-        const freshActive = allPools.find(p => p.id === activePool.id);
+      const currentActiveId = activePoolIdRef.current;
+      if (currentActiveId) {
+        const freshActive = allPools.find(p => p.id === currentActiveId);
         if (freshActive) setActivePool(freshActive);
       }
     } catch (err) {
       console.error(err);
     }
-  }, [activePool]);
+  }, []); // No dependencies — uses ref for active ID
 
   useEffect(() => {
-    Promise.resolve().then(() => refreshData());
-    const interval = setInterval(refreshData, 1500);
+    refreshData();
+    const interval = setInterval(refreshData, 3000);
     return () => clearInterval(interval);
   }, [refreshData]);
 
-  // Generate AI rationale when active pool changes or match is selected
+  // Generate AI rationale when active pool changes (by ID, not object reference)
+  const activePoolId = activePool?.id;
+  const activePoolStatus = activePool?.status;
+  const activePoolMatchId = activePool?.matchId;
+
   useEffect(() => {
-    if (!activePool || activePool.status !== 'open') {
-      Promise.resolve().then(() => setAiRationale(null));
+    if (!activePoolId || activePoolStatus !== 'open') {
+      setAiRationale(null);
       return;
     }
+
+    let cancelled = false;
 
     const loadRationale = async () => {
       setAiLoading(true);
       setAiRationale(null);
       try {
-        const match = matches.find(m => m.id === activePool.matchId);
-        if (match) {
+        const match = matchesRef.current.find(m => m.id === activePoolMatchId);
+        if (match && !cancelled) {
           const rationale = await generatePredictionRationale(match.homeTeam, match.awayTeam);
-          setAiRationale(rationale);
+          if (!cancelled) setAiRationale(rationale);
         }
       } catch (err) {
         console.error(err);
       } finally {
-        setAiLoading(false);
+        if (!cancelled) setAiLoading(false);
       }
     };
 
     loadRationale();
-  }, [activePool, matches]);
+    return () => { cancelled = true; };
+  }, [activePoolId, activePoolStatus, activePoolMatchId]);
 
   const handleCreatePool = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -7,13 +7,13 @@
     "packages/*"
   ],
   "scripts": {
-    "dev:client": "npm run dev -w apps/client",
-    "dev:next-app": "npm run dev -w apps/next-app",
-    "dev:relay": "npm run dev -w apps/relay-service",
-    "dev": "npm run dev:client & npm run dev:relay",
-    "build": "npm run build --workspaces --if-present",
-    "lint": "npm run lint --workspaces --if-present",
-    "typecheck": "npm run typecheck --workspaces --if-present",
+    "dev:client": "bun run --filter client dev",
+    "dev:next-app": "bun run --filter next-app dev",
+    "dev:relay": "bun run --filter relay-service dev",
+    "dev": "bun run dev:client & bun run dev:relay",
+    "build": "bun run --filter '*' build",
+    "lint": "bun run --filter '*' lint",
+    "typecheck": "bun run --filter '*' typecheck",
     "depcruise": "depcruise --config .dependency-cruiser.js apps/client/src"
   },
   "devDependencies": {
