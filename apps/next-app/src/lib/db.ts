@@ -1,6 +1,13 @@
 import { Pool, QueryResult, QueryResultRow } from 'pg';
 
-const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/pitchos';
+if (!process.env.DATABASE_URL || !process.env.JWT_SECRET) {
+  const missing = [];
+  if (!process.env.DATABASE_URL) missing.push("DATABASE_URL");
+  if (!process.env.JWT_SECRET) missing.push("JWT_SECRET");
+  throw new Error(`[PitchOS DB] Missing required environment variables: ${missing.join(", ")}. Please configure them in your .env file.`);
+}
+
+const connectionString = process.env.DATABASE_URL;
 
 let pool: Pool | null = null;
 let useMock = false;

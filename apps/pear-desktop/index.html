@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>PitchOS Desktop</title>
+    <meta charset="utf-8">
+    <style>
+      body, html, iframe {
+        margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; border: none;
+        background-color: #0b0f19;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Load the local Next.js client URL -->
+    <iframe src="http://localhost:3000" id="app-frame"></iframe>
+
+    <script type="module">
+      // Expose Pear runtime APIs to the loaded Next.js iframe
+      const iframe = document.getElementById('app-frame');
+      iframe.onload = () => {
+        iframe.contentWindow.Pear = window.Pear;
+        console.log("[Pear Desktop] Loaded Next.js app and injected Pear APIs");
+      };
+    </script>
+  </body>
+</html>

@@ -1,7 +1,11 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import * as http from 'http';
 
-const PORT = process.env.PORT || 3001;
+if (!process.env.PORT) {
+  throw new Error(`[Relay Service] Missing required PORT environment variable. Please configure it in your .env file.`);
+}
+
+const PORT = process.env.PORT;
 
 interface ClientSession {
   ws: WebSocket;

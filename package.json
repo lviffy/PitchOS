@@ -19,5 +19,8 @@
   "devDependencies": {
     "dependency-cruiser": "^18.0.0",
     "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "pear-electron": "^1.7.28"
   }
 }

@@ -1,0 +1,17 @@
+{
+  "name": "pitchos-desktop",
+  "main": "index.js",
+  "type": "module",
+  "pear": {
+    "name": "pitchos",
+    "pre": "pear-electron/pre",
+    "gui": {
+      "entry": "index.html",
+      "width": 1280,
+      "height": 800
+    }
+  },
+  "dependencies": {
+    "pear-electron": "^1.7.28"
+  }
+}

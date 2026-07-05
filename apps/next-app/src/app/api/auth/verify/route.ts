@@ -3,7 +3,7 @@ import { verifyAuthResponse } from '@pitchos/shared-types';
 import { challenges } from '../store';
 import crypto from 'crypto';
 
-const SECRET_KEY = process.env.JWT_SECRET || 'pitchos-default-secret-key-2026';
+const SECRET_KEY = process.env.JWT_SECRET!;
 
 function signToken(payload: object, secret: string): string {
   const header = { alg: 'HS256', typ: 'JWT' };

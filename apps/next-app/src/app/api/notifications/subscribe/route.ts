@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { query } from '../../../../lib/db';
 import crypto from 'crypto';
 
-const SECRET_KEY = process.env.JWT_SECRET || 'pitchos-default-secret-key-2026';
+const SECRET_KEY = process.env.JWT_SECRET!;
 
 function verifyToken(token: string, secret: string) {
   try {
