@@ -49,8 +49,8 @@ export default function AICoachPanel() {
       {/* Left Column: Player select & preset questions */}
       <div className="lg:col-span-1 space-y-6">
         {/* Preset Roster Diagnostic */}
-        <div className="bg-card-dark border border-border-dark rounded-2xl p-6 shadow-xl backdrop-blur-md">
-          <h3 className="font-display text-xl font-bold text-text-primary mb-4 flex items-center gap-2">
+        <div className="bg-card-dark border border-border-dark rounded-xl p-6">
+          <h3 className="font-sans text-xl font-bold text-text-primary mb-4 flex items-center gap-2">
             <span className="flex h-2.5 w-2.5 rounded-full bg-primary-green animate-pulse"></span>
             Roster Analysis
           </h3>
@@ -74,9 +74,9 @@ export default function AICoachPanel() {
                 >
                   <div>
                     <span className="font-semibold block">{p.name}</span>
-                    <span className="text-[10px] text-text-secondary">{p.position}</span>
+                    <span className="text-xs text-text-secondary">{p.position}</span>
                   </div>
-                  <span className="text-primary-green opacity-0 group-hover:opacity-100 transition text-[10px] font-semibold">
+                  <span className="text-primary-green opacity-0 group-hover:opacity-100 transition text-xs font-semibold">
                     Analyze &rarr;
                   </span>
                 </button>
@@ -86,8 +86,8 @@ export default function AICoachPanel() {
         </div>
 
         {/* Preset Tactical Guides */}
-        <div className="bg-card-dark border border-border-dark rounded-2xl p-6 shadow-xl backdrop-blur-md">
-          <h3 className="font-display text-lg font-bold text-text-primary mb-4">Tactical Presets</h3>
+        <div className="bg-card-dark border border-border-dark rounded-xl p-6">
+          <h3 className="font-sans text-lg font-bold text-text-primary mb-4">Tactical Presets</h3>
           <div className="space-y-2">
             <button
               onClick={() => handleAsk(undefined, 'How to defend a 4-3-3 formation?')}
@@ -106,12 +106,12 @@ export default function AICoachPanel() {
       </div>
 
       {/* Right Column: Main Chat Window */}
-      <div className="lg:col-span-2 bg-card-dark border border-border-dark rounded-2xl flex flex-col h-[520px] shadow-xl overflow-hidden">
+      <div className="lg:col-span-2 bg-card-dark border border-border-dark rounded-xl flex flex-col h-[520px] overflow-hidden">
         {/* Chat Header */}
         <div className="border-b border-border-dark px-6 py-4 bg-bg-dark bg-opacity-40 flex items-center justify-between">
           <div>
-            <h3 className="font-display text-lg font-bold text-text-primary">QVAC AI Assistant</h3>
-            <p className="text-[10px] text-text-secondary uppercase tracking-widest font-semibold flex items-center gap-1">
+            <h3 className="font-sans text-lg font-bold text-text-primary">QVAC AI Assistant</h3>
+            <p className="text-xs text-text-secondary uppercase tracking-widest font-semibold flex items-center gap-1">
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary-green"></span>
               On-Device Mode (100% Offline)
             </p>
@@ -119,7 +119,7 @@ export default function AICoachPanel() {
           {history.length > 0 && (
             <button
               onClick={() => setHistory([])}
-              className="text-[10px] text-pitch-red hover:underline font-semibold uppercase tracking-wider"
+              className="text-xs text-pitch-red hover:underline font-semibold uppercase tracking-wider"
             >
               Clear Chat
             </button>
@@ -147,13 +147,13 @@ export default function AICoachPanel() {
               <div key={idx} className="space-y-3">
                 {/* User Bubble */}
                 <div className="flex justify-end">
-                  <div className="bg-primary-green bg-opacity-10 border border-primary-green border-opacity-20 text-text-primary px-4 py-3 rounded-2xl rounded-tr-none max-w-lg text-sm">
+                  <div className="bg-primary-green bg-opacity-10 border border-primary-green border-opacity-20 text-text-primary px-4 py-3 rounded-xl rounded-tr-none max-w-lg text-sm">
                     {chat.q}
                   </div>
                 </div>
                 {/* AI Bubble */}
                 <div className="flex justify-start">
-                  <div className="bg-bg-dark border border-border-dark text-text-primary px-5 py-4 rounded-2xl rounded-tl-none max-w-xl text-sm whitespace-pre-wrap leading-relaxed shadow-md">
+                  <div className="bg-bg-dark border border-border-dark text-text-primary px-5 py-4 rounded-xl rounded-tl-none max-w-xl text-sm whitespace-pre-wrap leading-relaxed">
                     {chat.a}
                   </div>
                 </div>
@@ -164,7 +164,7 @@ export default function AICoachPanel() {
           {/* Loading Indicator */}
           {loading && (
             <div className="flex justify-start">
-              <div className="bg-bg-dark border border-border-dark px-5 py-4 rounded-2xl rounded-tl-none flex items-center gap-3">
+              <div className="bg-bg-dark border border-border-dark px-5 py-4 rounded-xl rounded-tl-none flex items-center gap-3">
                 <div className="flex gap-1">
                   <span className="w-2 h-2 bg-primary-green rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
                   <span className="w-2 h-2 bg-primary-green rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>

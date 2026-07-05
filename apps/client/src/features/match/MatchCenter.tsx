@@ -169,8 +169,8 @@ export default function MatchCenter() {
       {/* List of Matches & Create Match */}
       <div className="lg:col-span-1 space-y-6">
         {/* Create Match Form */}
-        <div className="bg-card-dark border border-border-dark rounded-2xl p-6 shadow-xl backdrop-blur-md">
-          <h3 className="font-display text-xl font-bold text-text-primary mb-4">Schedule Match</h3>
+        <div className="bg-card-dark border border-border-dark rounded-xl p-6">
+          <h3 className="font-sans text-xl font-bold text-text-primary mb-4">Schedule Match</h3>
           <form onSubmit={handleCreateMatch} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-text-secondary uppercase mb-1">Home Team</label>
@@ -204,8 +204,8 @@ export default function MatchCenter() {
         </div>
 
         {/* Matches List */}
-        <div className="bg-card-dark border border-border-dark rounded-2xl p-6 shadow-xl backdrop-blur-md">
-          <h3 className="font-display text-xl font-bold text-text-primary mb-4">Matches Roster</h3>
+        <div className="bg-card-dark border border-border-dark rounded-xl p-6">
+          <h3 className="font-sans text-xl font-bold text-text-primary mb-4">Matches Roster</h3>
           {matches.length === 0 ? (
             <div className="text-center py-6 bg-bg-dark border border-border-dark rounded-xl">
               <span className="text-xs text-text-secondary">No matches scheduled yet.</span>
@@ -227,11 +227,11 @@ export default function MatchCenter() {
                     <div className="text-xs font-semibold text-text-primary flex items-center gap-1.5">
                       {m.homeTeam} vs {m.awayTeam}
                     </div>
-                    <div className="text-[10px] text-text-secondary uppercase tracking-wider font-semibold">
+                    <div className="text-xs text-text-secondary uppercase tracking-wider font-semibold">
                       Score: {m.score?.home ?? 0} - {m.score?.away ?? 0}
                     </div>
                   </div>
-                  <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-md ${
+                  <span className={`text-xs uppercase font-bold px-2 py-0.5 rounded-md ${
                     m.status === 'live' 
                       ? 'bg-pitch-red bg-opacity-10 text-pitch-red border border-pitch-red border-opacity-20 animate-pulse' 
                       : m.status === 'completed'
@@ -261,22 +261,22 @@ export default function MatchCenter() {
         )}
 
         {!activeMatch ? (
-          <div className="bg-card-dark border border-border-dark rounded-2xl p-12 text-center shadow-xl">
+          <div className="bg-card-dark border border-border-dark rounded-xl p-12 text-center">
             <div className="w-16 h-16 rounded-full bg-border-dark flex items-center justify-center mx-auto mb-4 text-text-secondary">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 0 1 3 3h-15a3 3 0 0 1 3-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-5.75c-.621 0-1.125.504-1.125 1.125v3.375m9 0ZM9 10.5h.008v.008H9V10.5Zm.008 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12 10.5h.008v.008H12V10.5Zm.008 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm3-2.25h.008v.008H15V8.25Zm.008 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
               </svg>
             </div>
-            <h3 className="font-display text-xl font-bold text-text-primary">Match Console</h3>
+            <h3 className="font-sans text-xl font-bold text-text-primary">Match Console</h3>
             <p className="text-sm text-text-secondary mt-1 max-w-sm mx-auto">
               Select a scheduled or live match from the roster panel to enter real-time event tracking and statistics analysis.
             </p>
           </div>
         ) : (
-          <div className="bg-card-dark border border-border-dark rounded-2xl p-6 shadow-xl space-y-6">
+          <div className="bg-card-dark border border-border-dark rounded-xl p-6 space-y-6">
             {/* Header: Scoreboard */}
             <div className="bg-bg-dark border border-border-dark rounded-xl p-6 text-center space-y-3">
-              <div className="text-[10px] text-text-secondary font-bold uppercase tracking-widest">
+              <div className="text-xs text-text-secondary font-bold uppercase tracking-widest">
                 {activeMatch.status === 'live' && <span className="w-2.5 h-2.5 bg-pitch-red rounded-full inline-block animate-ping mr-1"></span>}
                 {activeMatch.status} match
               </div>
@@ -311,11 +311,11 @@ export default function MatchCenter() {
             {/* Event Logging Section (Only if live) */}
             {activeMatch.status === 'live' && (
               <div className="border border-border-dark rounded-xl p-4 bg-bg-dark bg-opacity-30 space-y-4">
-                <h4 className="font-display text-sm font-bold text-text-primary uppercase tracking-wider">Log Match Event</h4>
+                <h4 className="font-sans text-sm font-bold text-text-primary uppercase tracking-wider">Log Match Event</h4>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-[10px] text-text-secondary font-semibold uppercase tracking-wider mb-1">Match Minute</label>
+                    <label className="block text-xs text-text-secondary font-semibold uppercase tracking-wider mb-1">Match Minute</label>
                     <input
                       type="number"
                       min={1}
@@ -326,7 +326,7 @@ export default function MatchCenter() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-text-secondary font-semibold uppercase tracking-wider mb-1">Select Player</label>
+                    <label className="block text-xs text-text-secondary font-semibold uppercase tracking-wider mb-1">Select Player</label>
                     <select
                       value={eventPlayer}
                       onChange={e => setEventPlayer(e.target.value)}
@@ -339,7 +339,7 @@ export default function MatchCenter() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[10px] text-text-secondary font-semibold uppercase tracking-wider mb-1">Context / In</label>
+                    <label className="block text-xs text-text-secondary font-semibold uppercase tracking-wider mb-1">Context / In</label>
                     {/* If goal, home vs away. If substitution, player in */}
                     <select
                       value={eventDetails}
@@ -398,7 +398,7 @@ export default function MatchCenter() {
             {/* QVAC AI Report (If available / compiled) */}
             {(activeMatch.status === 'completed' || aiReport) && (
               <div className="bg-bg-dark border border-border-dark rounded-xl p-5 space-y-4 animate-fadeIn">
-                <h4 className="font-display text-md font-bold text-primary-green flex items-center gap-2">
+                <h4 className="font-sans text-md font-bold text-primary-green flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-pitch-gold animate-ping"></span>
                   QVAC AI Technical Match Report
                 </h4>
@@ -406,23 +406,23 @@ export default function MatchCenter() {
                 {aiReport ? (
                   <div className="space-y-3 text-xs">
                     <div className="bg-card-dark border border-border-dark p-3.5 rounded-lg">
-                      <span className="text-[10px] text-text-secondary uppercase tracking-wider block font-semibold mb-1">Post-Match Summary</span>
+                      <span className="text-xs text-text-secondary uppercase tracking-wider block font-semibold mb-1">Post-Match Summary</span>
                       <p className="text-text-primary leading-relaxed">{aiReport.summary}</p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="bg-card-dark border border-border-dark p-3.5 rounded-lg">
-                        <span className="text-[10px] text-text-secondary uppercase tracking-wider block font-semibold mb-2">Tactical Feedback</span>
+                        <span className="text-xs text-text-secondary uppercase tracking-wider block font-semibold mb-2">Tactical Feedback</span>
                         <p className="text-text-primary leading-relaxed">{aiReport.tacticalTip}</p>
                       </div>
                       <div className="bg-card-dark border border-border-dark p-3.5 rounded-lg">
-                        <span className="text-[10px] text-text-secondary uppercase tracking-wider block font-semibold mb-1">Match MVP</span>
+                        <span className="text-xs text-text-secondary uppercase tracking-wider block font-semibold mb-1">Match MVP</span>
                         <span className="text-sm font-bold text-pitch-gold">{aiReport.mvp}</span>
                       </div>
                     </div>
 
                     <div>
-                      <span className="text-[10px] text-text-secondary uppercase tracking-wider block font-semibold mb-2">Player Performance Ratings</span>
+                      <span className="text-xs text-text-secondary uppercase tracking-wider block font-semibold mb-2">Player Performance Ratings</span>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                         {Object.entries(aiReport.playerRatings).map(([pId, rating]) => (
                           <div key={pId} className="bg-card-dark border border-border-dark p-2 rounded-lg flex justify-between items-center">
@@ -443,7 +443,7 @@ export default function MatchCenter() {
 
             {/* Match Event Timeline */}
             <div className="space-y-3">
-              <h4 className="font-display text-sm font-bold text-text-primary uppercase tracking-wider">Timeline Events ({activeMatch.events.length})</h4>
+              <h4 className="font-sans text-sm font-bold text-text-primary uppercase tracking-wider">Timeline Events ({activeMatch.events.length})</h4>
               
               {activeMatch.events.length === 0 ? (
                 <div className="text-center py-4 bg-bg-dark border border-border-dark rounded-xl">
@@ -455,7 +455,7 @@ export default function MatchCenter() {
                     <div key={e.id} className="bg-bg-dark border border-border-dark rounded-xl px-4 py-2.5 flex items-center justify-between text-xs transition hover:bg-card-hover">
                       <div className="flex items-center gap-3">
                         <span className="font-bold text-primary-green font-mono">{e.minute}&apos;</span>
-                        <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${
+                        <span className={`text-xs uppercase font-bold px-1.5 py-0.5 rounded ${
                           e.type === 'goal' 
                             ? 'bg-primary-green bg-opacity-10 text-primary-green' 
                             : e.type === 'substitution'
@@ -471,7 +471,7 @@ export default function MatchCenter() {
                         </span>
                       </div>
                       {e.details && (
-                        <span className="text-[10px] text-text-secondary uppercase font-semibold">
+                        <span className="text-xs text-text-secondary uppercase font-semibold">
                           ({e.details})
                         </span>
                       )}

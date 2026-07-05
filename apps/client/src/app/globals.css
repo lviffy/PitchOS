@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -33,7 +33,7 @@
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
+  --radius: 0px;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
@@ -151,50 +151,79 @@
 }
 
 body {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
+  background-color: var(--background);
+  color: var(--foreground);
   font-family: var(--font-sans);
+  font-optical-sizing: auto;
+  font-kerning: normal;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
   min-height: 100vh;
   margin: 0;
   padding: 0;
 }
 
+/* tabular numbers for all monospaced data */
+.font-mono {
+  font-variant-numeric: tabular-nums;
+}
+
+/* All-caps / uppercase short labels need tracking */
+.uppercase {
+  letter-spacing: 0.07em;
+}
+
+/* heading tighter tracking */
+h1, h2, h3, h4, h5, h6 {
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 .dark {
-  --background: oklch(0.12 0.01 220);
-  --foreground: oklch(0.98 0.005 220);
-  --card: oklch(0.15 0.015 220);
-  --card-foreground: oklch(0.98 0.005 220);
-  --card-hover: oklch(0.18 0.015 220);
-  --popover: oklch(0.15 0.015 220);
-  --popover-foreground: oklch(0.98 0.005 220);
-  --primary: oklch(0.72 0.16 150);
-  --primary-foreground: oklch(0.12 0.01 220);
-  --primary-hover: oklch(0.66 0.15 150);
-  --secondary: oklch(0.18 0.01 220);
-  --secondary-foreground: oklch(0.98 0.005 220);
-  --muted: oklch(0.18 0.01 220);
-  --muted-foreground: oklch(0.65 0.01 220);
-  --accent: oklch(0.18 0.01 220);
-  --accent-foreground: oklch(0.98 0.005 220);
-  --destructive: oklch(0.62 0.18 25);
-  --border: oklch(0.22 0.015 220);
-  --input: oklch(0.22 0.015 220);
-  --ring: oklch(0.72 0.16 150);
+  --background: oklch(0.08 0.015 150);
+  --foreground: oklch(0.96 0.01 150);
+  --card: oklch(0.12 0.02 150);
+  --card-foreground: oklch(0.96 0.01 150);
+  --card-hover: oklch(0.14 0.025 150);
+  --popover: oklch(0.12 0.02 150);
+  --popover-foreground: oklch(0.96 0.01 150);
+  --primary: oklch(0.68 0.14 150);
+  --primary-foreground: oklch(0.08 0.015 150);
+  --primary-hover: oklch(0.62 0.13 150);
+  --secondary: oklch(0.13 0.02 150);
+  --secondary-foreground: oklch(0.96 0.01 150);
+  --muted: oklch(0.13 0.02 150);
+  --muted-foreground: oklch(0.62 0.02 150);
+  --accent: oklch(0.13 0.02 150);
+  --accent-foreground: oklch(0.96 0.01 150);
+  --destructive: oklch(0.55 0.15 25);
+  --border: oklch(0.18 0.025 150);
+  --input: oklch(0.18 0.025 150);
+  --ring: oklch(0.68 0.14 150);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.15 0.015 220);
-  --sidebar-foreground: oklch(0.98 0.005 220);
-  --sidebar-primary: oklch(0.72 0.16 150);
-  --sidebar-primary-foreground: oklch(0.12 0.01 220);
-  --sidebar-accent: oklch(0.18 0.01 220);
-  --sidebar-accent-foreground: oklch(0.98 0.005 220);
-  --sidebar-border: oklch(0.22 0.015 220);
-  --sidebar-ring: oklch(0.72 0.16 150);
-  --gold: oklch(0.76 0.14 75);
-  --red: oklch(0.62 0.18 25);
+  --sidebar: oklch(0.12 0.02 150);
+  --sidebar-foreground: oklch(0.96 0.01 150);
+  --sidebar-primary: oklch(0.68 0.14 150);
+  --sidebar-primary-foreground: oklch(0.08 0.015 150);
+  --sidebar-accent: oklch(0.13 0.02 150);
+  --sidebar-accent-foreground: oklch(0.96 0.01 150);
+  --sidebar-border: oklch(0.18 0.025 150);
+  --sidebar-ring: oklch(0.68 0.14 150);
+  --gold: oklch(0.74 0.11 75);
+  --red: oklch(0.55 0.15 25);
 }
 
 @layer base {
@@ -206,5 +235,17 @@ body {
   }
   html {
     @apply font-sans;
+  }
+
+  /* Keyboard focus rings for all interactive elements */
+  button:focus-visible,
+  a:focus-visible,
+  [role="tab"]:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: var(--radius);
   }
 }

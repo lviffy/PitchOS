@@ -203,8 +203,8 @@ export default function ClubView({ did }: ClubViewProps) {
       {/* LEFT COLUMN: P2P SYNC STATUS & CLUB DETAILS */}
       <div className="space-y-6 lg:col-span-1">
         {/* P2P Connectivity Panel */}
-        <div className="bg-card-dark border border-border-dark rounded-2xl p-6 shadow-xl backdrop-blur-md">
-          <h3 className="font-display text-xl font-bold text-text-primary mb-4">P2P Network Center</h3>
+        <div className="bg-card-dark border border-border-dark rounded-xl p-6">
+          <h3 className="font-sans text-xl font-bold text-text-primary mb-4">P2P Network Center</h3>
           
           <form onSubmit={handleConnectSync} className="space-y-4">
             <div>
@@ -256,8 +256,8 @@ export default function ClubView({ did }: ClubViewProps) {
 
         {/* Club Profile Card */}
         {club && (
-          <div className="bg-card-dark border border-border-dark rounded-2xl p-6 shadow-xl backdrop-blur-md">
-            <h3 className="font-display text-xl font-bold text-text-primary mb-4 flex items-center gap-2">
+          <div className="bg-card-dark border border-border-dark rounded-xl p-6">
+            <h3 className="font-sans text-xl font-bold text-text-primary mb-4 flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-primary-green">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 0 1 3 3h-15a3 3 0 0 1 3-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-5.75c-.621 0-1.125.504-1.125 1.125v3.375m9 0ZM9 10.5h.008v.008H9V10.5Zm.008 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12 10.5h.008v.008H12V10.5Zm.008 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm3-2.25h.008v.008H15V8.25Zm.008 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
               </svg>
@@ -303,8 +303,8 @@ export default function ClubView({ did }: ClubViewProps) {
 
         {/* If no club exists, show create club form */}
         {!club ? (
-          <div className="bg-card-dark border border-border-dark rounded-2xl p-8 shadow-xl">
-            <h3 className="font-display text-2xl font-bold text-text-primary mb-2">Create Football Club</h3>
+          <div className="bg-card-dark border border-border-dark rounded-xl p-8">
+            <h3 className="font-sans text-2xl font-bold text-text-primary mb-2">Create Football Club</h3>
             <p className="text-sm text-text-secondary mb-6">Initialize a new club workspace inside this sync channel.</p>
             
             <form onSubmit={handleCreateClub} className="space-y-5">
@@ -352,9 +352,9 @@ export default function ClubView({ did }: ClubViewProps) {
         ) : (
           <>
             {/* Roster & Add Player Section */}
-            <div className="bg-card-dark border border-border-dark rounded-2xl p-6 shadow-xl">
+            <div className="bg-card-dark border border-border-dark rounded-xl p-6">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="font-display text-2xl font-bold text-text-primary">Team Roster ({players.length})</h3>
+                <h3 className="font-sans text-2xl font-bold text-text-primary">Team Roster ({players.length})</h3>
               </div>
 
               {/* Roster Table */}
@@ -391,7 +391,7 @@ export default function ClubView({ did }: ClubViewProps) {
 
               {/* Add Player Form */}
               <div className="border-t border-border-dark pt-6">
-                <h4 className="font-display text-lg font-bold text-text-primary mb-4">Add Player to Roster</h4>
+                <h4 className="font-sans text-lg font-bold text-text-primary mb-4">Add Player to Roster</h4>
                 <form onSubmit={handleAddPlayer} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
@@ -464,8 +464,8 @@ export default function ClubView({ did }: ClubViewProps) {
             </div>
 
             {/* Attendance Session Section */}
-            <div className="bg-card-dark border border-border-dark rounded-2xl p-6 shadow-xl">
-              <h3 className="font-display text-2xl font-bold text-text-primary mb-2">Attendance Sheet</h3>
+            <div className="bg-card-dark border border-border-dark rounded-xl p-6">
+              <h3 className="font-sans text-2xl font-bold text-text-primary mb-2">Attendance Sheet</h3>
               <p className="text-sm text-text-secondary mb-6">Log and verify session attendance offline.</p>
 
               <div className="flex gap-4 items-center mb-6">

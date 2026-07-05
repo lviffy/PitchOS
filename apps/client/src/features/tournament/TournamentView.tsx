@@ -122,8 +122,8 @@ export default function TournamentView() {
       {/* Tournament List & Creation Panel */}
       <div className="lg:col-span-1 space-y-6">
         {/* Create Tournament */}
-        <div className="bg-card-dark border border-border-dark rounded-2xl p-6 shadow-xl backdrop-blur-md">
-          <h3 className="font-display text-xl font-bold text-text-primary mb-4">Initialize Tournament</h3>
+        <div className="bg-card-dark border border-border-dark rounded-xl p-6">
+          <h3 className="font-sans text-xl font-bold text-text-primary mb-4">Initialize Tournament</h3>
           <form onSubmit={handleCreateTournament} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-text-secondary uppercase mb-1">Tournament Name</label>
@@ -177,7 +177,7 @@ export default function TournamentView() {
             </div>
 
             {isRealMoney && (
-              <div className="bg-pitch-gold bg-opacity-10 border border-pitch-gold border-opacity-20 text-[10px] text-pitch-gold px-3 py-2 rounded-lg leading-relaxed">
+              <div className="bg-pitch-gold bg-opacity-10 border border-pitch-gold border-opacity-20 text-xs text-pitch-gold px-3 py-2 rounded-lg leading-relaxed">
                 <strong>[ADR-007 Compliance Disclaimer]:</strong> Real-money entry fees require self-custodial escrow signing. Verify regional crypto compliance policy prior to deployment.
               </div>
             )}
@@ -192,8 +192,8 @@ export default function TournamentView() {
         </div>
 
         {/* Tournaments List */}
-        <div className="bg-card-dark border border-border-dark rounded-2xl p-6 shadow-xl backdrop-blur-md">
-          <h3 className="font-display text-xl font-bold text-text-primary mb-4">Tournaments</h3>
+        <div className="bg-card-dark border border-border-dark rounded-xl p-6">
+          <h3 className="font-sans text-xl font-bold text-text-primary mb-4">Tournaments</h3>
           {tournaments.length === 0 ? (
             <div className="text-center py-6 bg-bg-dark border border-border-dark rounded-xl">
               <span className="text-xs text-text-secondary">No tournaments initialized yet.</span>
@@ -213,11 +213,11 @@ export default function TournamentView() {
                 >
                   <div>
                     <span className="font-semibold text-xs block text-text-primary">{t.name}</span>
-                    <span className="text-[10px] text-text-secondary uppercase tracking-widest font-semibold block mt-0.5">
+                    <span className="text-xs text-text-secondary uppercase tracking-widest font-semibold block mt-0.5">
                       Fee: {t.entryFee} {t.isRealMoney ? 'USDT' : 'Points'}
                     </span>
                   </div>
-                  <span className={`text-[9px] uppercase font-bold px-2 py-0.5 rounded border ${
+                  <span className={`text-[11px] uppercase font-bold px-2 py-0.5 rounded border ${
                     t.status === 'active'
                       ? 'bg-primary-green bg-opacity-10 text-primary-green border-primary-green border-opacity-20 animate-pulse'
                       : t.status === 'completed'
@@ -247,28 +247,28 @@ export default function TournamentView() {
         )}
 
         {!activeTournament ? (
-          <div className="bg-card-dark border border-border-dark rounded-2xl p-12 text-center shadow-xl">
+          <div className="bg-card-dark border border-border-dark rounded-xl p-12 text-center">
             <div className="w-16 h-16 rounded-full bg-border-dark flex items-center justify-center mx-auto mb-4 text-text-secondary">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 8.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
               </svg>
             </div>
-            <h3 className="font-display text-xl font-bold text-text-primary">Tournament brackets</h3>
+            <h3 className="font-sans text-xl font-bold text-text-primary">Tournament brackets</h3>
             <p className="text-sm text-text-secondary mt-1 max-w-sm mx-auto">
               Select an initialized tournament from the list side-panel to manage registrations and view knockout matches.
             </p>
           </div>
         ) : (
-          <div className="bg-card-dark border border-border-dark rounded-2xl p-6 shadow-xl space-y-6">
+          <div className="bg-card-dark border border-border-dark rounded-xl p-6 space-y-6">
             <div className="flex items-center justify-between border-b border-border-dark pb-4">
               <div>
-                <h3 className="font-display text-2xl font-bold text-text-primary">{activeTournament.name}</h3>
+                <h3 className="font-sans text-2xl font-bold text-text-primary">{activeTournament.name}</h3>
                 <span className="text-xs text-text-secondary">
                   Format: <span className="text-primary-green uppercase font-semibold">{activeTournament.format} Knockout</span>
                 </span>
               </div>
               <div className="text-right">
-                <span className="text-[10px] text-text-secondary block font-bold uppercase tracking-wider">Target Pool</span>
+                <span className="text-xs text-text-secondary block font-bold uppercase tracking-wider">Target Pool</span>
                 <span className="text-base font-bold text-pitch-gold">
                   {activeTournament.teams.length * activeTournament.entryFee} {activeTournament.isRealMoney ? '₮' : 'PTS'}
                 </span>
@@ -279,7 +279,7 @@ export default function TournamentView() {
             {activeTournament.status === 'registration' && (
               <div className="space-y-6 animate-fadeIn">
                 <div className="bg-bg-dark border border-border-dark rounded-xl p-5 space-y-4">
-                  <h4 className="font-display text-md font-bold text-text-primary">Register Team</h4>
+                  <h4 className="font-sans text-md font-bold text-text-primary">Register Team</h4>
                   <form onSubmit={handleRegisterTeam} className="flex gap-2">
                     <input
                       type="text"
@@ -296,14 +296,14 @@ export default function TournamentView() {
                       Pay & Register
                     </button>
                   </form>
-                  <p className="text-[10px] text-text-secondary">
+                  <p className="text-xs text-text-secondary">
                     * Registering requires paying the entry fee of {activeTournament.entryFee} {activeTournament.isRealMoney ? 'USDT' : 'Points'} directly from your local wallet state.
                   </p>
                 </div>
 
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <h4 className="font-display text-sm font-bold text-text-primary uppercase tracking-wider">
+                    <h4 className="font-sans text-sm font-bold text-text-primary uppercase tracking-wider">
                       Registered Teams ({activeTournament.teams.length} / {activeTournament.maxParticipants})
                     </h4>
                     {activeTournament.teams.length >= 2 && (
@@ -325,7 +325,7 @@ export default function TournamentView() {
                       {activeTournament.teams.map((t, idx) => (
                         <div key={idx} className="bg-bg-dark border border-border-dark p-3 rounded-xl flex items-center justify-between text-xs">
                           <span className="font-semibold text-text-primary">{t}</span>
-                          <span className="text-primary-green text-[9px] uppercase font-bold bg-primary-green bg-opacity-10 border border-primary-green border-opacity-20 px-2 py-0.5 rounded">
+                          <span className="text-primary-green text-[11px] uppercase font-bold bg-primary-green bg-opacity-10 border border-primary-green border-opacity-20 px-2 py-0.5 rounded">
                             Paid
                           </span>
                         </div>
@@ -339,19 +339,19 @@ export default function TournamentView() {
             {/* Visual Knockout Bracket Tree (Only if active or completed) */}
             {activeTournament.status !== 'registration' && (
               <div className="space-y-6 animate-fadeIn">
-                <h4 className="font-display text-sm font-bold text-text-primary uppercase tracking-wider">Tournament Bracket</h4>
+                <h4 className="font-sans text-sm font-bold text-text-primary uppercase tracking-wider">Tournament Bracket</h4>
                 
                 {/* Visual rendering of single knockout bracket */}
                 <div className="bg-bg-dark border border-border-dark rounded-xl p-6 overflow-x-auto flex flex-col md:flex-row items-center justify-around gap-8 min-h-[300px]">
                   
                   {/* ROUND 1: Semi-Finals */}
                   <div className="flex flex-col gap-8 w-64">
-                    <span className="text-[10px] text-text-secondary font-bold uppercase text-center block tracking-wider">Round 1 — Semi-Finals</span>
+                    <span className="text-xs text-text-secondary font-bold uppercase text-center block tracking-wider">Round 1 — Semi-Finals</span>
                     
                     {round1Fixtures.map(fixture => {
                       const match = bracketMatches[fixture.matchId];
                       return (
-                        <div key={fixture.id} className="bg-card-dark border border-border-dark rounded-xl p-3.5 space-y-2.5 relative shadow-md">
+                        <div key={fixture.id} className="bg-card-dark border border-border-dark rounded-xl p-3.5 space-y-2.5 relative">
                           <div className="flex justify-between items-center text-xs">
                             <span className="font-semibold text-text-primary truncate max-w-[120px]">
                               {match ? match.homeTeam : 'TBD'}
@@ -388,7 +388,7 @@ export default function TournamentView() {
 
                   {/* ROUND 2: Grand Final */}
                   <div className="flex flex-col gap-8 w-64 justify-center">
-                    <span className="text-[10px] text-text-secondary font-bold uppercase text-center block tracking-wider">Round 2 — Grand Final</span>
+                    <span className="text-xs text-text-secondary font-bold uppercase text-center block tracking-wider">Round 2 — Grand Final</span>
                     
                     {round2Fixtures.length === 0 ? (
                       <div className="bg-bg-dark border border-border-dark border-dashed rounded-xl p-8 text-center text-xs text-text-secondary">
@@ -398,7 +398,7 @@ export default function TournamentView() {
                       round2Fixtures.map(fixture => {
                         const match = bracketMatches[fixture.matchId];
                         return (
-                          <div key={fixture.id} className="bg-card-dark border border-pitch-gold rounded-xl p-3.5 space-y-2.5 relative shadow-md">
+                          <div key={fixture.id} className="bg-card-dark border border-pitch-gold rounded-xl p-3.5 space-y-2.5 relative">
                             <div className="flex justify-between items-center text-xs">
                               <span className="font-semibold text-text-primary truncate max-w-[120px]">
                                 {match ? match.homeTeam : 'TBD'}
@@ -417,7 +417,7 @@ export default function TournamentView() {
                             </div>
 
                             {match?.status === 'completed' && (
-                              <div className="text-[10px] text-pitch-gold font-bold uppercase text-center pt-2">
+                              <div className="text-xs text-pitch-gold font-bold uppercase text-center pt-2">
                                 🏆 Champion:{' '}
                                 {match.score!.home > match.score!.away
                                   ? match.homeTeam
@@ -433,14 +433,14 @@ export default function TournamentView() {
 
                 {/* Fixture List link helpers */}
                 <div className="space-y-3">
-                  <h4 className="font-display text-sm font-bold text-text-primary uppercase tracking-wider">Fixture Admin List</h4>
+                  <h4 className="font-sans text-sm font-bold text-text-primary uppercase tracking-wider">Fixture Admin List</h4>
                   <div className="space-y-2">
                     {activeTournament.fixtures.map((f, idx) => {
                       const m = bracketMatches[f.matchId];
                       return (
                         <div key={idx} className="bg-bg-dark border border-border-dark rounded-xl px-4 py-3 flex items-center justify-between text-xs">
                           <div>
-                            <span className="text-[10px] font-semibold text-primary-green uppercase tracking-wider mr-2">
+                            <span className="text-xs font-semibold text-primary-green uppercase tracking-wider mr-2">
                               {f.stageName} (R{f.round})
                             </span>
                             <span className="font-bold text-text-primary">
@@ -449,7 +449,7 @@ export default function TournamentView() {
                           </div>
                           
                           <div className="flex items-center gap-2">
-                            <span className={`text-[9px] uppercase px-2 py-0.5 rounded font-bold ${
+                            <span className={`text-[11px] uppercase px-2 py-0.5 rounded font-bold ${
                               m?.status === 'live' 
                                 ? 'bg-pitch-red text-white' 
                                 : m?.status === 'completed'
@@ -460,7 +460,7 @@ export default function TournamentView() {
                             </span>
                             
                             {m && m.status !== 'completed' && (
-                              <span className="text-[10px] text-text-secondary italic">
+                              <span className="text-xs text-text-secondary italic">
                                 Log in Match Center tab to play
                               </span>
                             )}

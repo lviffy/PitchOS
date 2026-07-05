@@ -182,7 +182,7 @@ export default function AdminDashboard() {
               {/* Status Card */}
               <div className="bg-muted/40 border border-border p-4 rounded-lg flex flex-col justify-between">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Service Status</span>
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Service Status</span>
                   <span className="text-muted-foreground"><Pulse size={14} /></span>
                 </div>
                 <div className="mt-4 flex items-center gap-2">
@@ -200,42 +200,42 @@ export default function AdminDashboard() {
               {/* Public Tournaments */}
               <div className="bg-muted/40 border border-border p-4 rounded-lg flex flex-col justify-between">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Public Tournaments</span>
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Public Tournaments</span>
                   <span className="text-muted-foreground"><Database size={14} /></span>
                 </div>
                 <div className="mt-4">
                   <span className="text-2xl font-mono font-bold">
                     {stats.metrics.cachedTournaments}
                   </span>
-                  <span className="text-[10px] text-muted-foreground block mt-1">active cache replicas</span>
+                  <span className="text-xs text-muted-foreground block mt-1">active cache replicas</span>
                 </div>
               </div>
 
               {/* Push Registrations */}
               <div className="bg-muted/40 border border-border p-4 rounded-lg flex flex-col justify-between">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Push Registrations</span>
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Push Registrations</span>
                   <span className="text-muted-foreground"><PlugsConnected size={14} /></span>
                 </div>
                 <div className="mt-4">
                   <span className="text-2xl font-mono font-bold">
                     {stats.metrics.pushSubscriptions}
                   </span>
-                  <span className="text-[10px] text-muted-foreground block mt-1">registered devices</span>
+                  <span className="text-xs text-muted-foreground block mt-1">registered devices</span>
                 </div>
               </div>
 
               {/* DID Challenges */}
               <div className="bg-muted/40 border border-border p-4 rounded-lg flex flex-col justify-between">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">DID Challenges</span>
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">DID Challenges</span>
                   <span className="text-muted-foreground"><Key size={14} /></span>
                 </div>
                 <div className="mt-4">
                   <span className="text-2xl font-mono font-bold">
                     {stats.metrics.activeChallenges}
                   </span>
-                  <span className="text-[10px] text-muted-foreground block mt-1">active identity challenges</span>
+                  <span className="text-xs text-muted-foreground block mt-1">active identity challenges</span>
                 </div>
               </div>
             </div>
@@ -264,13 +264,13 @@ export default function AdminDashboard() {
             <div className="bg-muted/40 border border-border rounded-lg p-4 space-y-2.5 text-xs font-mono">
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Loki Log Collector:</span>
-                <Badge variant="outline" className="text-[10px] border-primary/20 text-primary py-0 px-2 font-semibold">
+                <Badge variant="outline" className="text-xs border-primary/20 text-primary py-0 px-2 font-semibold">
                   ONLINE (Ready)
                 </Badge>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Tempo Trace Agent:</span>
-                <Badge variant="outline" className="text-[10px] border-primary/20 text-primary py-0 px-2 font-semibold">
+                <Badge variant="outline" className="text-xs border-primary/20 text-primary py-0 px-2 font-semibold">
                   ONLINE (Ready)
                 </Badge>
               </div>
@@ -308,19 +308,19 @@ export default function AdminDashboard() {
             <div className="bg-muted/40 border border-border rounded-lg p-4 space-y-2.5 text-xs font-mono">
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">DID JWT Verification:</span>
-                <Badge variant="outline" className="text-[10px] border-primary/20 text-primary py-0 px-2 font-semibold">
+                <Badge variant="outline" className="text-xs border-primary/20 text-primary py-0 px-2 font-semibold">
                   ENFORCED
                 </Badge>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">RLS Strict Isolation:</span>
-                <Badge variant="outline" className="text-[10px] border-primary/20 text-primary py-0 px-2 font-semibold">
+                <Badge variant="outline" className="text-xs border-primary/20 text-primary py-0 px-2 font-semibold">
                   ACTIVE (PostgreSQL 16)
                 </Badge>
               </div>
               <div className="flex justify-between items-center border-t border-border/50 pt-2.5 mt-2.5">
                 <span className="text-muted-foreground">Relay SSL Security:</span>
-                <Badge variant="outline" className="text-[10px] border-primary/20 text-primary py-0 px-2 font-semibold">
+                <Badge variant="outline" className="text-xs border-primary/20 text-primary py-0 px-2 font-semibold">
                   ENFORCED (WSS)
                 </Badge>
               </div>
@@ -340,7 +340,7 @@ export default function AdminDashboard() {
               Live Loki Feed (Supporting Services)
             </CardTitle>
           </div>
-          <Badge variant="secondary" className="text-[9px] py-0 px-2 font-semibold">
+          <Badge variant="secondary" className="text-[11px] py-0 px-2 font-semibold">
             Streaming
           </Badge>
         </CardHeader>
@@ -354,7 +354,7 @@ export default function AdminDashboard() {
                 }`}
               >
                 <span className="text-muted-foreground shrink-0 font-medium">{log.timestamp}</span>
-                <span className={`uppercase text-[9px] px-1 py-0.5 rounded font-bold shrink-0 ${
+                <span className={`uppercase text-[11px] px-1 py-0.5 rounded font-bold shrink-0 ${
                   log.level === 'warn' 
                     ? 'bg-destructive/10 text-destructive' 
                     : log.level === 'error'

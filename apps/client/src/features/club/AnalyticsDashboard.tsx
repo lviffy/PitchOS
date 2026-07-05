@@ -53,8 +53,8 @@ export default function AnalyticsDashboard() {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       {/* Roster Select panel */}
       <div className="lg:col-span-1 space-y-6">
-        <div className="bg-card-dark border border-border-dark rounded-2xl p-6 shadow-xl backdrop-blur-md">
-          <h3 className="font-display text-xl font-bold text-text-primary mb-4">Select Player</h3>
+        <div className="bg-card-dark border border-border-dark rounded-xl p-6">
+          <h3 className="font-sans text-xl font-bold text-text-primary mb-4">Select Player</h3>
           {players.length === 0 ? (
             <div className="text-center py-6 bg-bg-dark border border-border-dark rounded-xl">
               <span className="text-xs text-text-secondary">No roster players found.</span>
@@ -71,11 +71,11 @@ export default function AnalyticsDashboard() {
                 >
                   <div>
                     <span className="font-semibold text-xs block text-text-primary">{p.name}</span>
-                    <span className="text-[10px] text-text-secondary">
+                    <span className="text-xs text-text-secondary">
                       {p.position} | Jersey #{p.jerseyNumber || '-'}
                     </span>
                   </div>
-                  <span className="text-primary-green text-[10px] font-bold opacity-0 group-hover:opacity-100 transition">
+                  <span className="text-primary-green text-xs font-bold opacity-0 group-hover:opacity-100 transition">
                     View &rarr;
                   </span>
                 </button>
@@ -88,17 +88,17 @@ export default function AnalyticsDashboard() {
       {/* Main Analytics workspace */}
       <div className="lg:col-span-2 space-y-6">
         {!selectedPlayer ? (
-          <div className="bg-card-dark border border-border-dark rounded-2xl p-12 text-center shadow-xl">
-            <h3 className="font-display text-xl font-bold text-text-primary">Performance Analytics</h3>
+          <div className="bg-card-dark border border-border-dark rounded-xl p-12 text-center">
+            <h3 className="font-sans text-xl font-bold text-text-primary">Performance Analytics</h3>
             <p className="text-sm text-text-secondary mt-1">
               Select a player to load tactical analytics and generate progress reports.
             </p>
           </div>
         ) : (
-          <div className="bg-card-dark border border-border-dark rounded-2xl p-6 shadow-xl space-y-6">
+          <div className="bg-card-dark border border-border-dark rounded-xl p-6 space-y-6">
             <div className="flex items-center justify-between border-b border-border-dark pb-4">
               <div>
-                <h3 className="font-display text-2xl font-bold text-text-primary">{selectedPlayer.name}</h3>
+                <h3 className="font-sans text-2xl font-bold text-text-primary">{selectedPlayer.name}</h3>
                 <span className="text-xs text-text-secondary uppercase tracking-widest font-semibold">
                   Roster Position:{' '}
                   <span className="text-primary-green">{selectedPlayer.position}</span>
@@ -115,7 +115,7 @@ export default function AnalyticsDashboard() {
 
             {/* Performance Charts */}
             <div className="space-y-4">
-              <h4 className="font-display text-sm font-bold text-text-primary uppercase tracking-wider">
+              <h4 className="font-sans text-sm font-bold text-text-primary uppercase tracking-wider">
                 Technical Attributes
               </h4>
 
@@ -160,11 +160,11 @@ export default function AnalyticsDashboard() {
             {aiReport && (
               <div className="bg-bg-dark border border-border-dark rounded-xl p-5 space-y-4 animate-fadeIn">
                 <div className="flex justify-between items-center border-b border-border-dark pb-3">
-                  <h4 className="font-display text-sm font-bold text-primary-green">
+                  <h4 className="font-sans text-sm font-bold text-primary-green">
                     QVAC Weekly Performance Report
                   </h4>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-text-secondary uppercase font-semibold">Score:</span>
+                    <span className="text-xs text-text-secondary uppercase font-semibold">Score:</span>
                     <span className="text-sm font-bold text-pitch-gold font-mono">{aiReport.progressScore}/100</span>
                   </div>
                 </div>
@@ -175,7 +175,7 @@ export default function AnalyticsDashboard() {
                   </div>
 
                   <div className="bg-card-dark border border-border-dark p-3.5 rounded-lg space-y-2">
-                    <span className="text-[9px] text-text-secondary uppercase font-semibold block">
+                    <span className="text-[11px] text-text-secondary uppercase font-semibold block">
                       Identified Weaknesses:
                     </span>
                     <ul className="list-disc pl-4 space-y-1 text-pitch-red">
