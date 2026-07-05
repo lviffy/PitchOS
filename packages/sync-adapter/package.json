@@ -9,7 +9,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@pitchos/shared-types": "*"
+    "@pitchos/shared-types": "*",
+    "autobase": "^7.28.1",
+    "hypercore": "^11.33.5",
+    "hyperswarm": "^4.17.0"
   },
   "devDependencies": {
     "typescript": "^5.0.0"

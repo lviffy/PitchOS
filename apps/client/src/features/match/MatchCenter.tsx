@@ -5,6 +5,7 @@ import { Match, MatchEventType, RosterEntry } from '@pitchos/shared-types';
 import { db } from '../../lib/db';
 import { createNewMatch, startMatch, logMatchEvent, endMatch } from './match-store';
 import { generateMatchPostAnalysis, MatchAnalysis } from '../ai/qvac-service';
+import { trackEvent } from '../../lib/telemetry';
 
 export default function MatchCenter() {
   const [matches, setMatches] = useState<Match[]>([]);
@@ -71,6 +72,7 @@ export default function MatchCenter() {
         return;
       }
       await createNewMatch(clubList[0].id, homeTeam, awayTeam);
+      trackEvent('match_created', { category: 'match-center', action: `Scheduled match ${homeTeam} vs ${awayTeam}` });
       setSuccess(`Match scheduled: ${homeTeam} vs ${awayTeam}`);
       setHomeTeam('');
       setAwayTeam('');
@@ -84,6 +86,7 @@ export default function MatchCenter() {
     setError('');
     try {
       await startMatch(matchId);
+      trackEvent('match_started', { category: 'match-center', action: `Match ${matchId} set to LIVE` });
       setSuccess('Match is now LIVE!');
       refreshData();
     } catch (err: unknown) {
@@ -120,6 +123,7 @@ export default function MatchCenter() {
         details
       );
       
+      trackEvent('match_event_logged', { category: 'match-center', action: `Logged ${eventType} at min ${eventMinute} for match ${activeMatch.id}` });
       setSuccess(`Logged ${eventType} at min ${eventMinute}`);
       setEventPlayer('');
       setSubPlayerIn('');
@@ -144,6 +148,7 @@ export default function MatchCenter() {
       };
 
       await endMatch(matchId, finalResult);
+      trackEvent('match_ended', { category: 'match-center', action: `Completed match ${matchId} with QVAC player ratings` });
       setAiReport(analysis);
       setSuccess('Match ended and analyzed by QVAC AI!');
       refreshData();

@@ -63,20 +63,32 @@ export async function submitPoolPrediction(
     throw new Error(`You have already submitted a prediction in the ${marketType} market.`);
   }
 
-  if (wallet.points < pool.entryFee) {
+  // Calculate dynamic balances from ledger
+  const { getWalletBalances, createTransaction } = await import('../wallet/wallet-store');
+  const balances = await getWalletBalances(wallet.did);
+
+  if (balances.points < pool.entryFee) {
     throw new Error('Insufficient points balance');
   }
 
-  // Deduct fee
-  wallet.points -= pool.entryFee;
-  saveLocalWallet(wallet);
+  // Submit prediction entry fee transaction on the ledger
+  const tx = await createTransaction(
+    wallet.did,
+    `did:pitchos:prediction_pool:${poolId}`,
+    pool.entryFee,
+    'Points',
+    'entry_fee',
+    wallet.privateKeyHex
+  );
+  const signedTxRef = tx.txHash;
 
   const prediction: Prediction = {
     id: Math.random().toString(36).substring(2, 9),
     participantDid: activeDid,
     marketType,
     selection,
-    submittedAt: Date.now()
+    submittedAt: Date.now(),
+    signedTxRef
   };
 
   await localCore.append(activeDid, {

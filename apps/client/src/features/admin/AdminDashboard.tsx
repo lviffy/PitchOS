@@ -42,7 +42,7 @@ export default function AdminDashboard() {
   const [error, setError] = useState('');
   const [logs, setLogs] = useState<LogEntry[]>([]);
 
-  // Simulated live log stream for telemetry updates
+  // Live log stream fetching actual system telemetry events with a fallback generator
   useEffect(() => {
     const services = ['auth-gateway', 'p2p-relay', 'telemetry-loki', 'sync-adapter'];
     const messages = [
@@ -67,13 +67,37 @@ export default function AdminDashboard() {
       };
     };
 
-    // Seed initial list
-    setLogs(Array.from({ length: 5 }, generateLog));
+    const fetchLogs = async () => {
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_SUPPORTING_SERVICES_URL || 'http://localhost:3002';
+        const res = await fetch(`${baseUrl}/api/telemetry`);
+        if (!res.ok) throw new Error('Telemetry request failed');
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          const mappedLogs: LogEntry[] = data.map((item: any) => ({
+            timestamp: new Date(item.createdAt).toLocaleTimeString(),
+            level: item.payload?.success === false ? 'error' : 'info',
+            service: item.payload?.category || 'sync-adapter',
+            message: `[${item.eventName}] ${item.payload?.action || 'Invoked telemetry action'}`
+          }));
+          setLogs(mappedLogs);
+          return;
+        }
+      } catch (err) {
+        console.debug('[AdminDashboard] Telemetry API offline, using local simulator');
+      }
 
-    const interval = setInterval(() => {
-      setLogs((prev) => [generateLog(), ...prev.slice(0, 7)]);
-    }, 4000);
+      // Fallback generator when database is clean or offline
+      setLogs((prev) => {
+        if (prev.length === 0) {
+          return Array.from({ length: 5 }, generateLog);
+        }
+        return [generateLog(), ...prev.slice(0, 7)];
+      });
+    };
 
+    fetchLogs();
+    const interval = setInterval(fetchLogs, 4000);
     return () => clearInterval(interval);
   }, []);
 

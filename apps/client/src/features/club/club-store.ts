@@ -1,6 +1,7 @@
 import { db } from '../../lib/db';
 import { Club, Member, RosterEntry } from '@pitchos/shared-types';
 import { HypercoreMock, P2PClient } from '@pitchos/sync-adapter';
+import { trackEvent } from '../../lib/telemetry';
 
 // Global instances for active session P2P synchronization
 export let localCore: HypercoreMock | null = null;
@@ -156,11 +157,26 @@ export function initClubSync(
             pool.winners = data.winners;
             pool.resolution = data.resolution;
             await db.predictionPools.put(pool);
-            const { getLocalWallet, saveLocalWallet } = await import('../wallet/wallet-store');
-            const wallet = getLocalWallet();
-            if (wallet && data.resolution.payouts[wallet.did]) {
-              wallet.points += data.resolution.payouts[wallet.did];
-              saveLocalWallet(wallet);
+            
+            // Log payouts to ledger
+            if (data.resolution.payouts) {
+              for (const [winnerDid, payoutAmount] of Object.entries(data.resolution.payouts)) {
+                const txId = `payout_${data.poolId}_${winnerDid}`;
+                const txExists = await db.transactions.get(txId);
+                if (!txExists) {
+                  await db.transactions.put({
+                    id: txId,
+                    txHash: `txhash_payout_${data.poolId}_${winnerDid.slice(-8)}`,
+                    senderDid: `did:pitchos:prediction_pool:${data.poolId}`,
+                    recipientDid: winnerDid,
+                    amount: payoutAmount as number,
+                    currency: 'Points',
+                    type: 'payout',
+                    timestamp: Date.now(),
+                    signature: 'system_resolution_sig'
+                  });
+                }
+              }
             }
           }
           break;
@@ -204,6 +220,8 @@ export async function createNewClub(name: string, location?: string, ageCategory
     type: 'create_club',
     data: { club }
   }, `sig_${activeDid}`);
+  
+  trackEvent('club_created', { category: 'club-manager', action: `Created club: ${name}` });
 
   // 2. Add creator as Owner member
   const member: Member = {
@@ -258,6 +276,7 @@ export async function addRosterPlayer(
     data: { player }
   }, `sig_${activeDid}`);
 
+  trackEvent('player_added', { category: 'club-manager', action: `Added player ${name} to roster` });
   return player;
 }
 

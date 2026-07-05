@@ -1,16 +1,28 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { createNewWallet, getLocalWallet, WalletState, deleteLocalWallet, saveLocalWallet } from './wallet-store';
+import React, { useState, useEffect, useCallback } from 'react';
+import { 
+  createNewWallet, 
+  getLocalWallet, 
+  WalletState, 
+  deleteLocalWallet, 
+  getWalletBalances, 
+  createTransaction, 
+  requestFaucet 
+} from './wallet-store';
 import { trackEvent } from '../../lib/telemetry';
+import { db } from '../../lib/db';
+import { WalletTransaction } from '@pitchos/shared-types';
 
 interface WalletSetupProps {
   onWalletLoaded: (wallet: WalletState) => void;
 }
 
 export default function WalletSetup({ onWalletLoaded }: WalletSetupProps) {
-  const [wallet, setWallet] = useState<WalletState | null>(() => getLocalWallet());
+  const [wallet, setWallet] = useState<WalletState | null>(null);
+  const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [loading, setLoading] = useState(false);
+  const [faucetLoading, setFaucetLoading] = useState(false);
   const [importKey, setImportKey] = useState('');
   const [error, setError] = useState('');
 
@@ -20,11 +32,31 @@ export default function WalletSetup({ onWalletLoaded }: WalletSetupProps) {
   const [txSuccess, setTxSuccess] = useState('');
   const [txError, setTxError] = useState('');
 
-  useEffect(() => {
-    if (wallet) {
-      onWalletLoaded(wallet);
+  // Load wallet keys and calculate balances asynchronously
+  const loadWalletData = useCallback(async () => {
+    const localKeys = getLocalWallet();
+    if (localKeys) {
+      const balances = await getWalletBalances(localKeys.did);
+      const fullWallet = {
+        ...localKeys,
+        ...balances
+      };
+      setWallet(fullWallet);
+      onWalletLoaded(fullWallet);
+
+      // Fetch transaction history
+      const list = await db.transactions
+        .where('senderDid').equals(fullWallet.did)
+        .or('recipientDid').equals(fullWallet.did)
+        .reverse()
+        .sortBy('timestamp');
+      setTransactions(list);
     }
-  }, [wallet, onWalletLoaded]);
+  }, [onWalletLoaded]);
+
+  useEffect(() => {
+    loadWalletData();
+  }, [loadWalletData]);
 
   const handleCreate = async () => {
     setLoading(true);
@@ -34,6 +66,7 @@ export default function WalletSetup({ onWalletLoaded }: WalletSetupProps) {
       setWallet(nw);
       onWalletLoaded(nw);
       trackEvent('wallet_created', { action: 'create', category: 'wallet', success: true });
+      await loadWalletData();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to create wallet');
     } finally {
@@ -52,17 +85,17 @@ export default function WalletSetup({ onWalletLoaded }: WalletSetupProps) {
     try {
       const publicKeyHex = importKey.substring(0, 64);
       const did = `did:pitchos:${publicKeyHex}`;
-      const nw: WalletState = {
+      
+      const keyInfo = {
         publicKeyHex,
         privateKeyHex: importKey,
         did,
-        balance: 250,
-        points: 500
+        seedPhrase: 'imported-wallet'
       };
-      createNewWallet();
-      localStorage.setItem('pitchos_wallet', JSON.stringify(nw));
-      setWallet(nw);
-      onWalletLoaded(nw);
+      
+      localStorage.setItem('pitchos_wallet', JSON.stringify(keyInfo));
+      trackEvent('wallet_imported', { action: 'import', category: 'wallet', success: true });
+      await loadWalletData();
     } catch {
       setError('Import failed: verify key format.');
     } finally {
@@ -76,7 +109,24 @@ export default function WalletSetup({ onWalletLoaded }: WalletSetupProps) {
     window.location.reload();
   };
 
-  const handleDonate = (e: React.FormEvent) => {
+  const handleFaucetRequest = async (currency: 'USDT' | 'Points', amount: number) => {
+    if (!wallet) return;
+    setFaucetLoading(true);
+    setTxError('');
+    setTxSuccess('');
+    try {
+      await requestFaucet(wallet.did, currency, amount, wallet.privateKeyHex);
+      setTxSuccess(`Faucet request processed! Received +${amount} ${currency === 'USDT' ? 'USDT' : 'Points'}`);
+      trackEvent('faucet_claimed', { action: 'faucet', category: 'wallet', currency, amount });
+      await loadWalletData();
+    } catch (err) {
+      setTxError('Faucet request failed.');
+    } finally {
+      setFaucetLoading(false);
+    }
+  };
+
+  const handleDonate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!wallet) return;
     const amount = parseFloat(donateAmount);
@@ -93,76 +143,135 @@ export default function WalletSetup({ onWalletLoaded }: WalletSetupProps) {
       return;
     }
 
-    const updated = {
-      ...wallet,
-      balance: parseFloat((wallet.balance - amount).toFixed(2))
-    };
-    saveLocalWallet(updated);
-    setWallet(updated);
-    setTxSuccess(`Successfully donated ${amount} USDT to ${donateRecipient.slice(0, 15)}...`);
-    setDonateAmount('');
-    setDonateRecipient('');
+    setLoading(true);
     setTxError('');
-    onWalletLoaded(updated);
-    trackEvent('donation_sent', { action: 'donate', category: 'payment', success: true });
+    setTxSuccess('');
+    try {
+      // 1. Submit real signed transfer transaction on the ledger
+      await createTransaction(
+        wallet.did,
+        donateRecipient,
+        amount,
+        'USDT',
+        'transfer',
+        wallet.privateKeyHex
+      );
+
+      setTxSuccess(`Successfully donated ${amount} USDT to ${donateRecipient.slice(0, 20)}...`);
+      setDonateAmount('');
+      setDonateRecipient('');
+      trackEvent('donation_sent', { action: 'donate', category: 'payment', success: true });
+      await loadWalletData();
+    } catch (err: any) {
+      setTxError(`Payment submission failed: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handlePurchaseMerch = (itemName: string, cost: number, ptsReward: number) => {
+  const handlePurchaseMerch = async (itemName: string, cost: number, ptsReward: number) => {
     if (!wallet) return;
     if (wallet.balance < cost) {
       setTxError(`Insufficient USDT balance to purchase ${itemName}.`);
       return;
     }
 
-    const updated = {
-      ...wallet,
-      balance: parseFloat((wallet.balance - cost).toFixed(2)),
-      points: wallet.points + ptsReward
-    };
-    saveLocalWallet(updated);
-    setWallet(updated);
-    setTxSuccess(`Successfully purchased ${itemName}! Deducted ${cost} USDT, rewarded +${ptsReward} PTS.`);
+    setLoading(true);
     setTxError('');
-    onWalletLoaded(updated);
-    trackEvent('merch_purchased', { action: 'purchase_merch', category: 'store', success: true });
+    setTxSuccess('');
+    try {
+      // 1. Deduct cost from wallet DID to store DID
+      await createTransaction(
+        wallet.did,
+        'did:pitchos:store',
+        cost,
+        'USDT',
+        'purchase',
+        wallet.privateKeyHex
+      );
+
+      // 2. Award loyalty points from rewards address to wallet DID
+      await createTransaction(
+        'did:pitchos:rewards',
+        wallet.did,
+        ptsReward,
+        'Points',
+        'payout',
+        wallet.privateKeyHex
+      );
+
+      setTxSuccess(`Successfully purchased ${itemName}! Deducted ${cost} USDT, rewarded +${ptsReward} PTS.`);
+      trackEvent('merch_purchased', { action: 'purchase_merch', category: 'store', success: true });
+      await loadWalletData();
+    } catch (err: any) {
+      setTxError(`Store payment failed: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (wallet) {
     return (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Wallet Balances Card */}
-        <div className="lg:col-span-1 bg-card-dark border border-border-dark rounded-2xl p-6 shadow-2xl h-fit space-y-6 backdrop-blur-md">
-          <h2 className="font-display text-2xl font-bold text-text-primary flex items-center gap-2">
-            <span className="w-3 h-3 bg-primary-green rounded-full animate-pulse"></span>
-            Wallet Active
-          </h2>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1">
-                Your DID (Self-Custodial Identity)
-              </label>
-              <div className="bg-bg-dark border border-border-dark px-3 py-2 rounded-lg text-sm text-primary-green break-all font-mono">
-                {wallet.did}
+        <div className="lg:col-span-1 space-y-6">
+          <div className="bg-card-dark border border-border-dark rounded-2xl p-6 shadow-2xl space-y-6 backdrop-blur-md">
+            <h2 className="font-display text-2xl font-bold text-text-primary flex items-center gap-2">
+              <span className="w-3 h-3 bg-primary-green rounded-full animate-pulse"></span>
+              Wallet Active
+            </h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1">
+                  Your DID (Self-Custodial Identity)
+                </label>
+                <div className="bg-bg-dark border border-border-dark px-3 py-2 rounded-lg text-xs text-primary-green break-all font-mono">
+                  {wallet.did}
+                </div>
               </div>
-            </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-bg-dark border border-border-dark p-4 rounded-xl text-center">
-                <span className="block text-[10px] text-text-secondary uppercase tracking-wider mb-1">USDT Balance</span>
-                <span className="text-xl font-bold text-text-primary">{wallet.balance} ₮</span>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-bg-dark border border-border-dark p-4 rounded-xl text-center">
+                  <span className="block text-[10px] text-text-secondary uppercase tracking-wider mb-1">USDT Balance</span>
+                  <span className="text-xl font-bold text-text-primary">{wallet.balance} ₮</span>
+                </div>
+                <div className="bg-bg-dark border border-border-dark p-4 rounded-xl text-center">
+                  <span className="block text-[10px] text-text-secondary uppercase tracking-wider mb-1">Loyalty Points</span>
+                  <span className="text-xl font-bold text-pitch-gold">{wallet.points} PTS</span>
+                </div>
               </div>
-              <div className="bg-bg-dark border border-border-dark p-4 rounded-xl text-center">
-                <span className="block text-[10px] text-text-secondary uppercase tracking-wider mb-1">Loyalty Points</span>
-                <span className="text-xl font-bold text-pitch-gold">{wallet.points} PTS</span>
-              </div>
-            </div>
 
-            <button
-              onClick={handleClear}
-              className="w-full bg-pitch-red hover:bg-opacity-80 text-white font-semibold py-2.5 px-4 rounded-xl transition duration-200"
-            >
-              Reset Wallet
-            </button>
+              <button
+                onClick={handleClear}
+                className="w-full bg-pitch-red hover:bg-opacity-80 text-white font-semibold py-2.5 px-4 rounded-xl transition duration-200"
+              >
+                Reset Wallet
+              </button>
+            </div>
+          </div>
+
+          {/* Sandbox Faucet Controls */}
+          <div className="bg-card-dark border border-border-dark rounded-2xl p-6 shadow-2xl space-y-4 backdrop-blur-md">
+            <h3 className="font-display text-lg font-bold text-text-primary">USDT & Points Faucet</h3>
+            <p className="text-xs text-text-secondary">
+              Request testnet tokens. A cryptographically signed faucet payout transaction will be submitted to your address.
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => handleFaucetRequest('USDT', 100)}
+                disabled={faucetLoading}
+                className="bg-bg-dark hover:border-primary-green border border-border-dark text-xs text-primary-green font-bold py-2 rounded-lg transition"
+              >
+                +100 USDT
+              </button>
+              <button
+                onClick={() => handleFaucetRequest('Points', 500)}
+                disabled={faucetLoading}
+                className="bg-bg-dark hover:border-pitch-gold border border-border-dark text-xs text-pitch-gold font-bold py-2 rounded-lg transition"
+              >
+                +500 Points
+              </button>
+            </div>
           </div>
         </div>
 
@@ -213,9 +322,10 @@ export default function WalletSetup({ onWalletLoaded }: WalletSetupProps) {
               </div>
               <button
                 type="submit"
-                className="bg-primary-green hover:bg-primary-green-hover text-white text-xs font-semibold py-2 px-6 rounded-xl transition"
+                disabled={loading}
+                className="bg-primary-green hover:bg-primary-green-hover text-white text-xs font-semibold py-2 px-6 rounded-xl transition disabled:opacity-50"
               >
-                Send Donation
+                {loading ? 'Submitting payment...' : 'Send Donation'}
               </button>
             </form>
           </div>
@@ -244,13 +354,69 @@ export default function WalletSetup({ onWalletLoaded }: WalletSetupProps) {
                     </div>
                     <button
                       onClick={() => handlePurchaseMerch(item.name, item.cost, item.reward)}
-                      className="w-full bg-card-dark hover:bg-border-dark border border-border-dark text-[10px] font-bold py-1.5 rounded-lg transition text-text-primary uppercase tracking-wider"
+                      disabled={loading}
+                      className="w-full bg-card-dark hover:bg-border-dark border border-border-dark text-[10px] font-bold py-1.5 rounded-lg transition text-text-primary uppercase tracking-wider disabled:opacity-50"
                     >
                       Buy Now
                     </button>
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Transaction Ledger Table */}
+          <div className="bg-card-dark border border-border-dark rounded-2xl p-6 shadow-xl space-y-4">
+            <h3 className="font-display text-xl font-bold text-text-primary">Cryptographic Transaction Ledger</h3>
+            <div className="overflow-x-auto">
+              {transactions.length === 0 ? (
+                <p className="text-xs text-text-secondary text-center py-4">No ledger logs recorded for this wallet.</p>
+              ) : (
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b border-border-dark text-text-secondary text-[10px] uppercase font-bold">
+                      <th className="py-2">Tx Hash</th>
+                      <th className="py-2">Type</th>
+                      <th className="py-2">Amount</th>
+                      <th className="py-2">Direction</th>
+                      <th className="py-2 text-right">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {transactions.map(tx => {
+                      const isIncoming = tx.recipientDid === wallet.did;
+                      return (
+                        <tr key={tx.id} className="border-b border-border-dark hover:bg-bg-dark/45 transition">
+                          <td className="py-2.5 font-mono text-[10px] text-text-secondary" title={tx.txHash}>
+                            {tx.txHash.slice(0, 16)}...
+                          </td>
+                          <td className="py-2.5">
+                            <span className={`px-2 py-0.5 rounded text-[9px] font-semibold uppercase ${
+                              tx.type === 'faucet' ? 'bg-primary-green/10 text-primary-green' :
+                              tx.type === 'entry_fee' ? 'bg-pitch-red/10 text-pitch-red' :
+                              tx.type === 'payout' ? 'bg-pitch-gold/10 text-pitch-gold' :
+                              'bg-text-secondary/10 text-text-secondary'
+                            }`}>
+                              {tx.type}
+                            </span>
+                          </td>
+                          <td className="py-2.5 font-bold">
+                            <span className={isIncoming ? 'text-primary-green' : 'text-pitch-red'}>
+                              {isIncoming ? '+' : '-'}{tx.amount} {tx.currency === 'USDT' ? '₮' : 'PTS'}
+                            </span>
+                          </td>
+                          <td className="py-2.5 text-text-secondary text-[10px]">
+                            {isIncoming ? 'Received' : 'Sent'}
+                          </td>
+                          <td className="py-2.5 text-right text-text-secondary">
+                            {new Date(tx.timestamp).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
         </div>

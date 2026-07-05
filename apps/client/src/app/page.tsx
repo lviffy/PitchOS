@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import WalletSetup from '../features/wallet/WalletSetup';
 import ClubView from '../features/club/ClubView';
 import MatchCenter from '../features/match/MatchCenter';
@@ -14,14 +14,29 @@ import { WalletState } from '../features/wallet/wallet-store';
 type DashboardTab = 'club' | 'match' | 'tournament' | 'prediction' | 'ai' | 'analytics' | 'admin';
 
 export default function Home() {
-  const [wallet, setWallet] = useState<WalletState | null>(() => {
-    if (typeof window !== 'undefined') {
-      const data = localStorage.getItem('pitchos_wallet');
-      return data ? JSON.parse(data) : null;
-    }
-    return null;
-  });
+  const [wallet, setWallet] = useState<WalletState | null>(null);
+  const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<DashboardTab>('club');
+
+  useEffect(() => {
+    setMounted(true);
+    const data = localStorage.getItem('pitchos_wallet');
+    if (data) {
+      setWallet(JSON.parse(data));
+    }
+  }, []);
+
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-bg-dark text-text-primary flex items-center justify-center">
+        <div className="flex gap-1">
+          <span className="w-2.5 h-2.5 bg-primary-green rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+          <span className="w-2.5 h-2.5 bg-primary-green rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+          <span className="w-2.5 h-2.5 bg-primary-green rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-bg-dark text-text-primary flex flex-col">

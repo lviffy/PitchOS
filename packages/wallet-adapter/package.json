@@ -9,7 +9,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@pitchos/shared-types": "*"
+    "@pitchos/shared-types": "*",
+    "@tetherto/wdk": "^1.0.0-beta.13"
   },
   "devDependencies": {
     "typescript": "^5.0.0"

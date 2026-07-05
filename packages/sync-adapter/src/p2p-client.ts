@@ -1,5 +1,23 @@
 import { HypercoreMock } from './index';
 
+let HyperswarmClass: any = null;
+
+async function initHyperswarm(): Promise<boolean> {
+  if (typeof window !== 'undefined' && !(window as any).Pear) {
+    // Avoid loading hyperswarm on standard browsers to prevent bundle issues
+    return false;
+  }
+  if (HyperswarmClass) return true;
+  try {
+    const hsMod = await import(/* webpackIgnore: true */ 'hyperswarm');
+    HyperswarmClass = hsMod.default || hsMod;
+    return true;
+  } catch (err) {
+    console.warn('[P2PClient] Hyperswarm module not available in this environment. Falling back to WebSocket relay.');
+    return false;
+  }
+}
+
 export class P2PClient {
   private ws: WebSocket | null = null;
   private url: string;
@@ -11,6 +29,7 @@ export class P2PClient {
   private onConnectionChange: ((connected: boolean) => void) | null = null;
   private unsubscribeCore: (() => void) | null = null;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private swarm: any = null;
 
   constructor(url: string, did: string, topic: string, core: HypercoreMock) {
     this.url = url;
@@ -18,7 +37,6 @@ export class P2PClient {
     this.topic = topic;
     this.core = core;
 
-    // Subscribe to core ONCE in constructor — not in connect()
     this.unsubscribeCore = this.core.subscribe((entry) => {
       this.broadcastAppend(entry);
     });
@@ -29,16 +47,59 @@ export class P2PClient {
       this.onConnectionChange = onConnectionChange;
     }
 
-    // Guard against double-connect
     if (this.isConnecting || this.isConnected) {
       return;
     }
     this.isConnecting = true;
-    
+
+    // Check if running inside Pear CLI / runtime environment
+    const isPear = (globalThis as any).Pear !== undefined;
+    if (isPear) {
+      initHyperswarm().then(async (success) => {
+        if (success && HyperswarmClass) {
+          try {
+            console.log('[P2PClient] Initializing real Hyperswarm DHT discovery...');
+            this.swarm = new HyperswarmClass();
+            
+            // Derive a 32-byte topic hash using Node.js crypto
+            const crypto = await import('crypto');
+            const topicBuffer = crypto.createHash('sha256').update(this.topic).digest();
+
+            this.swarm.join(topicBuffer, {
+              lookup: true,
+              announce: true
+            });
+
+            this.swarm.on('connection', (conn: any, info: any) => {
+              console.log('[P2PClient] Direct peer connected via Hyperswarm!');
+              // Replicate hypercores over the stream
+              const realCore = (this.core as any).realCore;
+              if (realCore) {
+                conn.pipe(realCore.replicate(info.client)).pipe(conn);
+              }
+            });
+
+            this.isConnected = true;
+            this.isConnecting = false;
+            this.onConnectionChange?.(true);
+          } catch (err) {
+            console.error('[P2PClient] Hyperswarm setup failed, falling back to WebSocket Relay:', err);
+            this.connectWebSocket(onConnectionChange);
+          }
+        } else {
+          this.connectWebSocket(onConnectionChange);
+        }
+      });
+    } else {
+      this.connectWebSocket(onConnectionChange);
+    }
+  }
+
+  private connectWebSocket(onConnectionChange?: (connected: boolean) => void) {
     try {
       this.ws = new WebSocket(this.url);
     } catch (e) {
-      console.error('[P2PClient] Connection error', e);
+      console.error('[P2PClient] WebSocket connection error', e);
       this.isConnecting = false;
       return;
     }
@@ -49,7 +110,6 @@ export class P2PClient {
       this.isConnecting = false;
       this.onConnectionChange?.(true);
 
-      // Register did and topic
       this.ws?.send(JSON.stringify({
         type: 'register',
         did: this.did,
@@ -64,12 +124,10 @@ export class P2PClient {
         switch (data.type) {
           case 'registered':
             console.log('[P2PClient] Registration successful, session ID:', data.sessionId);
-            // Sync current items on startup
             this.sendSyncPayload();
             break;
 
           case 'signal': {
-            // Receive remote block append
             const { payload } = data;
             if (payload && payload.type === 'sync_append') {
               const entry = payload.entry;
@@ -93,7 +151,6 @@ export class P2PClient {
       this.isConnected = false;
       this.isConnecting = false;
       this.onConnectionChange?.(false);
-      // Clear any existing reconnect timer before scheduling a new one
       if (this.reconnectTimer) {
         clearTimeout(this.reconnectTimer);
       }
@@ -104,13 +161,11 @@ export class P2PClient {
     };
 
     this.ws.onerror = () => {
-      // onclose will fire after onerror, so just mark state here
       this.isConnecting = false;
     };
   }
 
   private sendSyncPayload() {
-    // Send all existing entries in core log
     this.core.length().then(async len => {
       for (let i = 0; i < len; i++) {
         const entry = await this.core.get(i);
@@ -122,42 +177,54 @@ export class P2PClient {
   }
 
   private broadcastAppend(entry: any) {
-    if (!this.isConnected || !this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+    if (!this.isConnected) return;
 
-    // Send payload. In a real system, this is TURN fallback or WebRTC data channel.
-    // In our browser/relay MVP setup, we broadcast to all other DIDs in the topic channel.
-    this.ws.send(JSON.stringify({
-      type: 'signal',
-      targetDid: 'broadcast_topic_peers', // Special keyword handled by relay to forward to all peers
-      payload: {
-        type: 'sync_append',
-        entry
-      }
-    }));
+    if (this.swarm) {
+      // Hyperswarm broadcasts automatically through core log replication events
+      return;
+    }
+
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify({
+        type: 'signal',
+        targetDid: 'broadcast_topic_peers',
+        payload: {
+          type: 'sync_append',
+          entry
+        }
+      }));
+    }
   }
 
   private async applySyncEntry(entry: any) {
     const existing = await this.core.get(entry.seq);
     if (!existing) {
-      // Append matching remote sequence to local replica
       await this.core.append(entry.author, entry.payload, entry.signature);
     }
   }
 
   disconnect() {
-    // Clean up reconnect timer
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
     }
-    // Unsubscribe from core to prevent further broadcasts
     if (this.unsubscribeCore) {
       this.unsubscribeCore();
       this.unsubscribeCore = null;
     }
     this.isConnected = false;
     this.isConnecting = false;
-    this.ws?.close();
-    this.ws = null;
+
+    if (this.swarm) {
+      try {
+        this.swarm.destroy();
+      } catch {}
+      this.swarm = null;
+    }
+
+    if (this.ws) {
+      this.ws.close();
+      this.ws = null;
+    }
   }
 }

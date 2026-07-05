@@ -14,11 +14,49 @@ export async function POST(request: Request) {
       [eventName, JSON.stringify(payload)]
     );
 
-    return NextResponse.json({ status: 'logged' });
+    return NextResponse.json({ status: 'logged' }, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
+    });
   } catch (err: unknown) {
     return NextResponse.json({ error: err instanceof Error ? err.message : 'Unknown error' }, { status: 500 });
   }
 }
+
+export async function GET() {
+  try {
+    const res = await query(
+      'SELECT id, event_name as "eventName", payload, created_at as "createdAt" FROM telemetry_events ORDER BY id DESC LIMIT 20'
+    );
+    
+    const logs = res.rows.map((row: any) => {
+      let parsedPayload = {};
+      try {
+        parsedPayload = typeof row.payload === 'string' ? JSON.parse(row.payload) : row.payload;
+      } catch {}
+      return {
+        id: row.id,
+        eventName: row.eventName,
+        payload: parsedPayload,
+        createdAt: row.createdAt || new Date().toISOString()
+      };
+    });
+
+    return NextResponse.json(logs, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
+    });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : 'Telemetry read failed' }, { status: 500 });
+  }
+}
+
 export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,

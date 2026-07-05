@@ -153,4 +153,16 @@ export interface DIDAuthResponse {
   nonce: string;
 }
 
+export interface WalletTransaction {
+  id: string;
+  txHash: string;
+  senderDid: string;
+  recipientDid: string;
+  amount: number;
+  currency: 'USDT' | 'Points';
+  type: 'faucet' | 'entry_fee' | 'payout' | 'transfer' | 'purchase';
+  timestamp: number;
+  signature: string;
+}
+
 export * from './auth';

@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "next dev --webpack",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit"
@@ -15,6 +15,7 @@
     "@pitchos/shared-types": "*",
     "@pitchos/sync-adapter": "*",
     "@pitchos/wallet-adapter": "*",
+    "@qvac/sdk": "^0.14.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dexie": "^4.4.4",

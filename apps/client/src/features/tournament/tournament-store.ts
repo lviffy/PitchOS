@@ -61,25 +61,30 @@ export async function registerTeamInTournament(
     throw new Error('Team already registered');
   }
 
-  // Deduct entry fee
+  // Calculate dynamic balances from ledger
+  const { getWalletBalances, createTransaction } = await import('../wallet/wallet-store');
+  const balances = await getWalletBalances(wallet.did);
+
   if (tournament.isRealMoney) {
-    if (wallet.balance < tournament.entryFee) {
+    if (balances.balance < tournament.entryFee) {
       throw new Error('Insufficient USDT balance');
     }
-    wallet.balance -= tournament.entryFee;
   } else {
-    if (wallet.points < tournament.entryFee) {
+    if (balances.points < tournament.entryFee) {
       throw new Error('Insufficient Points balance');
     }
-    wallet.points -= tournament.entryFee;
   }
 
-  // Locally sign payment transaction as proof using WDK P-256 key
-  const messageToSign = `register_team:${tournamentId}:${teamName}:${activeDid}:${Date.now()}`;
-  const signedTxRef = await signMessage(wallet.privateKeyHex, messageToSign);
-
-  // Save local wallet
-  saveLocalWallet(wallet);
+  // Submit payment transaction on the ledger
+  const tx = await createTransaction(
+    wallet.did,
+    `did:pitchos:tournament:${tournamentId}`,
+    tournament.entryFee,
+    tournament.isRealMoney ? 'USDT' : 'Points',
+    'entry_fee',
+    wallet.privateKeyHex
+  );
+  const signedTxRef = tx.txHash;
 
   // Broadcast registration
   await localCore.append(activeDid, {
