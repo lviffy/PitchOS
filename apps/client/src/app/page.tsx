@@ -8,12 +8,19 @@ import TournamentView from '../features/tournament/TournamentView';
 import PredictionView from '../features/prediction/PredictionView';
 import AICoachPanel from '../features/ai/AICoachPanel';
 import AnalyticsDashboard from '../features/club/AnalyticsDashboard';
+import AdminDashboard from '../features/admin/AdminDashboard';
 import { WalletState } from '../features/wallet/wallet-store';
 
-type DashboardTab = 'club' | 'match' | 'tournament' | 'prediction' | 'ai' | 'analytics';
+type DashboardTab = 'club' | 'match' | 'tournament' | 'prediction' | 'ai' | 'analytics' | 'admin';
 
 export default function Home() {
-  const [wallet, setWallet] = useState<WalletState | null>(null);
+  const [wallet, setWallet] = useState<WalletState | null>(() => {
+    if (typeof window !== 'undefined') {
+      const data = localStorage.getItem('pitchos_wallet');
+      return data ? JSON.parse(data) : null;
+    }
+    return null;
+  });
   const [activeTab, setActiveTab] = useState<DashboardTab>('club');
 
   return (
@@ -94,7 +101,8 @@ export default function Home() {
                   { id: 'tournament', label: 'Tournaments' },
                   { id: 'prediction', label: 'Prediction Circles' },
                   { id: 'ai', label: 'QVAC AI Coach' },
-                  { id: 'analytics', label: 'Analytics & Reports' }
+                  { id: 'analytics', label: 'Analytics & Reports' },
+                  { id: 'admin', label: 'Admin Dashboard' }
                 ] as const
               ).map(tab => (
                 <button
@@ -119,6 +127,7 @@ export default function Home() {
               {activeTab === 'prediction' && <PredictionView />}
               {activeTab === 'ai' && <AICoachPanel />}
               {activeTab === 'analytics' && <AnalyticsDashboard />}
+              {activeTab === 'admin' && <AdminDashboard />}
             </div>
           </div>
         )}

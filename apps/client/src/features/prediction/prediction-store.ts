@@ -1,5 +1,5 @@
 import { db } from '../../lib/db';
-import { PredictionPool, Prediction } from '@pitchos/shared-types';
+import { PredictionPool, Prediction, PredictionMarketType } from '@pitchos/shared-types';
 import { localCore, activeDid } from '../club/club-store';
 import { getLocalWallet, saveLocalWallet } from '../wallet/wallet-store';
 
@@ -21,7 +21,12 @@ export async function createNewPredictionPool(
     entryFee,
     maxParticipants,
     targetPool: 0,
-    predictions: { match_winner: [] },
+    predictions: {
+      match_winner: [],
+      correct_score: [],
+      total_goals: [],
+      btts: []
+    },
     status: 'open'
   };
 
@@ -35,7 +40,8 @@ export async function createNewPredictionPool(
 
 export async function submitPoolPrediction(
   poolId: string,
-  selection: string
+  selection: string,
+  marketType: PredictionMarketType = 'match_winner'
 ): Promise<void> {
   if (!localCore || !activeDid) {
     throw new Error('Sync not initialized.');
@@ -51,10 +57,10 @@ export async function submitPoolPrediction(
     throw new Error('Prediction pool not found');
   }
 
-  // Check if already placed a prediction
-  const currentPredictions = pool.predictions.match_winner || [];
+  // Check if already placed a prediction in this specific marketType
+  const currentPredictions = pool.predictions[marketType] || [];
   if (currentPredictions.some(p => p.participantDid === activeDid)) {
-    throw new Error('You have already submitted a prediction for this pool');
+    throw new Error(`You have already submitted a prediction in the ${marketType} market.`);
   }
 
   if (wallet.points < pool.entryFee) {
@@ -68,7 +74,7 @@ export async function submitPoolPrediction(
   const prediction: Prediction = {
     id: Math.random().toString(36).substring(2, 9),
     participantDid: activeDid,
-    marketType: 'match_winner',
+    marketType,
     selection,
     submittedAt: Date.now()
   };
@@ -100,40 +106,55 @@ export async function resolvePredictionPool(
     throw new Error('Associated match is not completed yet');
   }
 
-  // Calculate actual result
   const homeScore = match.score?.home ?? 0;
   const awayScore = match.score?.away ?? 0;
-  const actualOutcome = homeScore > awayScore 
-    ? 'home' 
-    : homeScore < awayScore 
-      ? 'away' 
-      : 'draw';
+  const totalGoals = homeScore + awayScore;
 
-  const predictions = pool.predictions.match_winner || [];
-  
-  // Find winners
-  const winners = predictions
-    .filter(p => p.selection === actualOutcome)
-    .map(p => p.participantDid);
+  // Outcomes for each supported market type
+  const outcomes = {
+    match_winner: homeScore > awayScore ? 'home' : homeScore < awayScore ? 'away' : 'draw',
+    correct_score: `${homeScore}-${awayScore}`,
+    total_goals: totalGoals > 2.5 ? 'over_2.5' : 'under_2.5',
+    btts: (homeScore > 0 && awayScore > 0) ? 'yes' : 'no'
+  };
 
-  // Distribute payouts
-  const totalPool = pool.targetPool;
   const payouts: Record<string, number> = {};
+  const winners: string[] = [];
 
-  if (winners.length > 0) {
-    const share = Math.floor(totalPool / winners.length);
-    winners.forEach(w => {
-      payouts[w] = share;
-    });
+  // Process all prediction markets registered in this pool
+  for (const [marketKey, predictions] of Object.entries(pool.predictions)) {
+    if (!predictions || predictions.length === 0) continue;
+
+    const actualOutcome = outcomes[marketKey as keyof typeof outcomes];
+    if (!actualOutcome) continue;
+
+    const marketWinners = predictions.filter(
+      p => p.selection.trim().toLowerCase() === actualOutcome.toLowerCase()
+    );
+
+    const marketPoolSize = pool.entryFee * predictions.length;
+
+    if (marketWinners.length > 0) {
+      const share = Math.floor(marketPoolSize / marketWinners.length);
+      marketWinners.forEach(w => {
+        winners.push(w.participantDid);
+        payouts[w.participantDid] = (payouts[w.participantDid] || 0) + share;
+      });
+    } else {
+      // Refund if no winners in this market category
+      predictions.forEach(p => {
+        payouts[p.participantDid] = (payouts[p.participantDid] || 0) + pool.entryFee;
+      });
+    }
   }
 
   await localCore.append(activeDid, {
     type: 'resolve_prediction_pool',
     data: {
       poolId,
-      winners,
+      winners: Array.from(new Set(winners)),
       resolution: {
-        finalResult: actualOutcome,
+        finalResult: `${homeScore}-${awayScore}`,
         payouts
       }
     }

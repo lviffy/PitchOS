@@ -1,14 +1,11 @@
 import { NextResponse } from 'next/server';
 import { challenges } from '../../auth/store';
-import { publicTournaments } from '../../tournaments/store';
-import { pushSubscriptions } from '../../notifications/store';
+import { query } from '../../../../lib/db';
 
-// Set of allowed admin source IPs
 const ALLOWED_IPS = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1', 'localhost']);
 
 export async function GET(request: Request) {
   try {
-    // 1. IP address check
     const forwardedFor = request.headers.get('x-forwarded-for');
     const realIp = request.headers.get('x-real-ip') || (forwardedFor ? forwardedFor.split(',')[0].trim() : '127.0.0.1');
 
@@ -16,14 +13,19 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Forbidden: Admin access restricted' }, { status: 403 });
     }
 
-    // 2. Fetch cache states
+    const tournamentCountRes = await query('SELECT COUNT(*) as count FROM tournaments');
+    const pushCountRes = await query('SELECT COUNT(*) as count FROM push_subscriptions');
+
+    const cachedTournamentsCount = parseInt(tournamentCountRes.rows[0]?.count || '0', 10);
+    const pushSubscriptionsCount = parseInt(pushCountRes.rows[0]?.count || '0', 10);
+
     return NextResponse.json({
       status: 'healthy',
       timestamp: Date.now(),
       metrics: {
         activeChallenges: challenges.size,
-        cachedTournaments: publicTournaments.size,
-        pushSubscriptions: pushSubscriptions.size
+        cachedTournaments: cachedTournamentsCount,
+        pushSubscriptions: pushSubscriptionsCount
       }
     });
   } catch (err: unknown) {

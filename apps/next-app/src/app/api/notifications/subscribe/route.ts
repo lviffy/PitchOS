@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { pushSubscriptions, PushSubscriptionData } from '../store';
+import { query } from '../../../../lib/db';
 import crypto from 'crypto';
 
 const SECRET_KEY = process.env.JWT_SECRET || 'pitchos-default-secret-key-2026';
@@ -33,23 +33,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized: invalid or expired session' }, { status: 401 });
     }
 
-    const { subscription } = await request.json() as { subscription: PushSubscriptionData };
-    if (!subscription || !subscription.endpoint) {
+    const { subscription } = await request.json();
+    if (!subscription || !subscription.endpoint || !subscription.keys) {
       return NextResponse.json({ error: 'Invalid subscription payload' }, { status: 400 });
     }
 
     const did = session.did;
-    
-    // Add subscription to registry
-    if (!pushSubscriptions.has(did)) {
-      pushSubscriptions.set(did, []);
-    }
-    const userSubs = pushSubscriptions.get(did)!;
-    
-    // Check if endpoint already registered
-    if (!userSubs.some(s => s.endpoint === subscription.endpoint)) {
-      userSubs.push(subscription);
-    }
+
+    await query(
+      `INSERT INTO push_subscriptions (did, endpoint, p256dh, auth)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (endpoint) DO UPDATE SET
+         did = EXCLUDED.did,
+         p256dh = EXCLUDED.p256dh,
+         auth = EXCLUDED.auth`,
+      [did, subscription.endpoint, subscription.keys.p256dh, subscription.keys.auth]
+    );
 
     return NextResponse.json({ status: 'success', message: 'Subscribed to notifications' });
   } catch (err: unknown) {
