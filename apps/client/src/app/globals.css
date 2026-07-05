@@ -1,0 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+@import "tailwindcss";
+
+:root {
+  --background: 160 50% 6%;
+  --card: 160 25% 10%;
+  --card-hover: 160 25% 14%;
+  --border: 160 20% 15%;
+  --foreground: 160 20% 95%;
+  --muted: 160 10% 70%;
+  --primary: 142 76% 36%;
+  --primary-hover: 142 72% 29%;
+  --gold: 45 93% 47%;
+  --red: 0 84% 60%;
+}
+
+@theme inline {
+  --color-bg-dark: hsl(var(--background));
+  --color-card-dark: hsl(var(--card));
+  --color-card-hover: hsl(var(--card-hover));
+  --color-border-dark: hsl(var(--border));
+  --color-text-primary: hsl(var(--foreground));
+  --color-text-secondary: hsl(var(--muted));
+  --color-primary-green: hsl(var(--primary));
+  --color-primary-green-hover: hsl(var(--primary-hover));
+  --color-pitch-gold: hsl(var(--gold));
+  --color-pitch-red: hsl(var(--red));
+  --font-sans: 'Plus Jakarta Sans', var(--font-geist-sans), sans-serif;
+  --font-display: 'Outfit', var(--font-geist-sans), sans-serif;
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}

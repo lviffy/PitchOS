@@ -1,0 +1,23 @@
+{
+  "name": "pitchos-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:client": "npm run dev -w apps/client",
+    "dev:next-app": "npm run dev -w apps/next-app",
+    "dev:relay": "npm run dev -w apps/relay-service",
+    "dev": "npm run dev:client & npm run dev:relay",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "depcruise": "depcruise --config .dependency-cruiser.js apps/client/src"
+  },
+  "devDependencies": {
+    "dependency-cruiser": "^18.0.0",
+    "typescript": "^5.0.0"
+  }
+}

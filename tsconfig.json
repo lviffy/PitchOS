@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@pitchos/shared-types": ["./packages/shared-types"],
+      "@pitchos/sync-adapter": ["./packages/sync-adapter"],
+      "@pitchos/ai-adapter": ["./packages/ai-adapter"],
+      "@pitchos/wallet-adapter": ["./packages/wallet-adapter"]
+    }
+  },
+  "exclude": ["node_modules"]
+}
