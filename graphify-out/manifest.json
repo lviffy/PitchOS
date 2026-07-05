@@ -1,0 +1,382 @@
+{
+  ".dependency-cruiser.js": {
+    "mtime": 1783240101.3544033,
+    "ast_hash": "fa8dc581fb4f1a3ee06df4a33a716f7b",
+    "semantic_hash": "fa8dc581fb4f1a3ee06df4a33a716f7b"
+  },
+  "apps/client/eslint.config.mjs": {
+    "mtime": 1783239999.7231183,
+    "ast_hash": "dfa1f5f6a7037bf39dc510f30b180002",
+    "semantic_hash": "dfa1f5f6a7037bf39dc510f30b180002"
+  },
+  "apps/client/next-env.d.ts": {
+    "mtime": 1783239999.7547548,
+    "ast_hash": "2a74d3909800ca5467fa83b0ab4a4890",
+    "semantic_hash": "2a74d3909800ca5467fa83b0ab4a4890"
+  },
+  "apps/client/next.config.ts": {
+    "mtime": 1783239999.7497978,
+    "ast_hash": "9b77af189a21a7a64e4bd7a426f64176",
+    "semantic_hash": "9b77af189a21a7a64e4bd7a426f64176"
+  },
+  "apps/client/package.json": {
+    "mtime": 1783240402.28376,
+    "ast_hash": "f0e898d458bf425f0c142b2bb657aaa5",
+    "semantic_hash": "f0e898d458bf425f0c142b2bb657aaa5"
+  },
+  "apps/client/postcss.config.mjs": {
+    "mtime": 1783239999.7547374,
+    "ast_hash": "239f3ebf717465dc636818a1a619398d",
+    "semantic_hash": "239f3ebf717465dc636818a1a619398d"
+  },
+  "apps/client/src/app/layout.tsx": {
+    "mtime": 1783239999.7581544,
+    "ast_hash": "94c34ef68b3949a75807a0211ec2273c",
+    "semantic_hash": "94c34ef68b3949a75807a0211ec2273c"
+  },
+  "apps/client/src/app/page.tsx": {
+    "mtime": 1783241669.0914302,
+    "ast_hash": "52f43d3df23c102963726c03d140d52b",
+    "semantic_hash": "52f43d3df23c102963726c03d140d52b"
+  },
+  "apps/client/src/features/ai/AICoachPanel.tsx": {
+    "mtime": 1783241094.7904103,
+    "ast_hash": "b9f3f211f9f42f8d11ce6742329f9f7c",
+    "semantic_hash": "b9f3f211f9f42f8d11ce6742329f9f7c"
+  },
+  "apps/client/src/features/ai/qvac-service.ts": {
+    "mtime": 1783241693.5425677,
+    "ast_hash": "076e44e1a0a349f54603ed891dbef796",
+    "semantic_hash": "076e44e1a0a349f54603ed891dbef796"
+  },
+  "apps/client/src/features/club/AnalyticsDashboard.tsx": {
+    "mtime": 1783241706.01668,
+    "ast_hash": "2e1395ffb54bd22e25b706bea110c97c",
+    "semantic_hash": "2e1395ffb54bd22e25b706bea110c97c"
+  },
+  "apps/client/src/features/club/ClubView.tsx": {
+    "mtime": 1783240536.539878,
+    "ast_hash": "234d6a10b416f76d5c04b9068334ede5",
+    "semantic_hash": "234d6a10b416f76d5c04b9068334ede5"
+  },
+  "apps/client/src/features/club/club-store.ts": {
+    "mtime": 1783240922.2394245,
+    "ast_hash": "083594fbf3fc964907f7221ff83faa6f",
+    "semantic_hash": "083594fbf3fc964907f7221ff83faa6f"
+  },
+  "apps/client/src/features/match/MatchCenter.tsx": {
+    "mtime": 1783241046.2965515,
+    "ast_hash": "966a90d8a8ff58c1831606969822ac26",
+    "semantic_hash": "966a90d8a8ff58c1831606969822ac26"
+  },
+  "apps/client/src/features/match/match-store.ts": {
+    "mtime": 1783240984.0694818,
+    "ast_hash": "dbc8bdecb16477bac64673cbbb18886a",
+    "semantic_hash": "dbc8bdecb16477bac64673cbbb18886a"
+  },
+  "apps/client/src/features/prediction/PredictionView.tsx": {
+    "mtime": 1783241083.9994168,
+    "ast_hash": "59de48e5a0ada218fcd66a89bb11a332",
+    "semantic_hash": "59de48e5a0ada218fcd66a89bb11a332"
+  },
+  "apps/client/src/features/prediction/prediction-store.ts": {
+    "mtime": 1783241027.62471,
+    "ast_hash": "92f5f645974b0f73b96f3f74b669c907",
+    "semantic_hash": "92f5f645974b0f73b96f3f74b669c907"
+  },
+  "apps/client/src/features/tournament/TournamentView.tsx": {
+    "mtime": 1783240993.5182521,
+    "ast_hash": "ab56895f7fb16a25a434f808bb0b9871",
+    "semantic_hash": "ab56895f7fb16a25a434f808bb0b9871"
+  },
+  "apps/client/src/features/tournament/tournament-store.ts": {
+    "mtime": 1783241018.460819,
+    "ast_hash": "cc83e1de08e2cb3100e9e1d004f15c7c",
+    "semantic_hash": "cc83e1de08e2cb3100e9e1d004f15c7c"
+  },
+  "apps/client/src/features/wallet/WalletSetup.tsx": {
+    "mtime": 1783240561.324637,
+    "ast_hash": "c6b58f8e1ee6f4b81a8c9f887ac2a804",
+    "semantic_hash": "c6b58f8e1ee6f4b81a8c9f887ac2a804"
+  },
+  "apps/client/src/features/wallet/wallet-store.ts": {
+    "mtime": 1783240418.8783448,
+    "ast_hash": "2000608407ab021454266040a99a474b",
+    "semantic_hash": "2000608407ab021454266040a99a474b"
+  },
+  "apps/client/src/lib/db.ts": {
+    "mtime": 1783240137.8967977,
+    "ast_hash": "2412dc1019cf0aaebd495f74a888526f",
+    "semantic_hash": "2412dc1019cf0aaebd495f74a888526f"
+  },
+  "apps/client/tsconfig.json": {
+    "mtime": 1783240406.977814,
+    "ast_hash": "8f33fe61ad094a2ed91fa156a315ef42",
+    "semantic_hash": "8f33fe61ad094a2ed91fa156a315ef42"
+  },
+  "apps/next-app/eslint.config.mjs": {
+    "mtime": 1783241267.2198017,
+    "ast_hash": "dfa1f5f6a7037bf39dc510f30b180002",
+    "semantic_hash": "dfa1f5f6a7037bf39dc510f30b180002"
+  },
+  "apps/next-app/next-env.d.ts": {
+    "mtime": 1783241267.22018,
+    "ast_hash": "2a74d3909800ca5467fa83b0ab4a4890",
+    "semantic_hash": "2a74d3909800ca5467fa83b0ab4a4890"
+  },
+  "apps/next-app/next.config.ts": {
+    "mtime": 1783241267.2200682,
+    "ast_hash": "9b77af189a21a7a64e4bd7a426f64176",
+    "semantic_hash": "9b77af189a21a7a64e4bd7a426f64176"
+  },
+  "apps/next-app/package.json": {
+    "mtime": 1783241279.0592015,
+    "ast_hash": "59804dadbb0db344e508e36d74cba06c",
+    "semantic_hash": "59804dadbb0db344e508e36d74cba06c"
+  },
+  "apps/next-app/postcss.config.mjs": {
+    "mtime": 1783241267.2199745,
+    "ast_hash": "239f3ebf717465dc636818a1a619398d",
+    "semantic_hash": "239f3ebf717465dc636818a1a619398d"
+  },
+  "apps/next-app/src/app/api/admin/stats/route.ts": {
+    "mtime": 1783241617.2631388,
+    "ast_hash": "ded72d1cc5b003dc26edc3bc2c030f13",
+    "semantic_hash": "ded72d1cc5b003dc26edc3bc2c030f13"
+  },
+  "apps/next-app/src/app/api/auth/challenge/route.ts": {
+    "mtime": 1783241306.145362,
+    "ast_hash": "c70264fcaae94a363767e2ee8d9f6725",
+    "semantic_hash": "c70264fcaae94a363767e2ee8d9f6725"
+  },
+  "apps/next-app/src/app/api/auth/store.ts": {
+    "mtime": 1783241301.3273337,
+    "ast_hash": "69a92726be86723b4c9474a29c9817f8",
+    "semantic_hash": "69a92726be86723b4c9474a29c9817f8"
+  },
+  "apps/next-app/src/app/api/auth/verify/route.ts": {
+    "mtime": 1783241312.091397,
+    "ast_hash": "84eb916e64796694a2bf716fceb65336",
+    "semantic_hash": "84eb916e64796694a2bf716fceb65336"
+  },
+  "apps/next-app/src/app/api/notifications/store.ts": {
+    "mtime": 1783241334.8845305,
+    "ast_hash": "3c10bb95c34f341bff4b48c68f3be368",
+    "semantic_hash": "3c10bb95c34f341bff4b48c68f3be368"
+  },
+  "apps/next-app/src/app/api/notifications/subscribe/route.ts": {
+    "mtime": 1783241340.6935644,
+    "ast_hash": "e65ea286f34f9439f69b382667ee43c7",
+    "semantic_hash": "e65ea286f34f9439f69b382667ee43c7"
+  },
+  "apps/next-app/src/app/api/tournaments/route.ts": {
+    "mtime": 1783241326.432481,
+    "ast_hash": "7fddcf36f3ce6874e3ec89a5d74c5cdd",
+    "semantic_hash": "7fddcf36f3ce6874e3ec89a5d74c5cdd"
+  },
+  "apps/next-app/src/app/api/tournaments/store.ts": {
+    "mtime": 1783241320.963449,
+    "ast_hash": "ecb71234d24f777f759e6ee14c7977fe",
+    "semantic_hash": "ecb71234d24f777f759e6ee14c7977fe"
+  },
+  "apps/next-app/src/app/layout.tsx": {
+    "mtime": 1783241267.2203257,
+    "ast_hash": "94c34ef68b3949a75807a0211ec2273c",
+    "semantic_hash": "94c34ef68b3949a75807a0211ec2273c"
+  },
+  "apps/next-app/src/app/page.tsx": {
+    "mtime": 1783241267.2214475,
+    "ast_hash": "1e489b26bb597dc97f8d44954dd042da",
+    "semantic_hash": "1e489b26bb597dc97f8d44954dd042da"
+  },
+  "apps/next-app/tsconfig.json": {
+    "mtime": 1783241267.2204044,
+    "ast_hash": "ee17fd1c97c735e9f3564e3f5251f125",
+    "semantic_hash": "ee17fd1c97c735e9f3564e3f5251f125"
+  },
+  "apps/relay-service/package.json": {
+    "mtime": 1783240184.0783021,
+    "ast_hash": "75e909c6b83601562b99ec82ac9b60a9",
+    "semantic_hash": "75e909c6b83601562b99ec82ac9b60a9"
+  },
+  "apps/relay-service/src/index.ts": {
+    "mtime": 1783240445.216965,
+    "ast_hash": "7fe68e4b06c022956f063467daf8d553",
+    "semantic_hash": "7fe68e4b06c022956f063467daf8d553"
+  },
+  "apps/relay-service/tsconfig.json": {
+    "mtime": 1783240188.070346,
+    "ast_hash": "afef9c7af8a0c09a336e94a17bb26d3c",
+    "semantic_hash": "afef9c7af8a0c09a336e94a17bb26d3c"
+  },
+  "package.json": {
+    "mtime": 1783240326.4778938,
+    "ast_hash": "f5c19f0629bcc93c5f4a529857f57dd3",
+    "semantic_hash": "f5c19f0629bcc93c5f4a529857f57dd3"
+  },
+  "packages/shared-types/package.json": {
+    "mtime": 1783240064.49601,
+    "ast_hash": "0010275933fadf3a451e3c063d5a6363",
+    "semantic_hash": "0010275933fadf3a451e3c063d5a6363"
+  },
+  "packages/shared-types/src/auth.ts": {
+    "mtime": 1783240207.8265638,
+    "ast_hash": "ee2b83c27e32a0129cf74c6e8d295089",
+    "semantic_hash": "ee2b83c27e32a0129cf74c6e8d295089"
+  },
+  "packages/shared-types/src/index.ts": {
+    "mtime": 1783240218.122678,
+    "ast_hash": "39b2e2f0224a28d01531affcffa3d886",
+    "semantic_hash": "39b2e2f0224a28d01531affcffa3d886"
+  },
+  "packages/shared-types/tsconfig.json": {
+    "mtime": 1783240068.6680543,
+    "ast_hash": "75f2a7ef93a98a39a120cd6f1344f75a",
+    "semantic_hash": "75f2a7ef93a98a39a120cd6f1344f75a"
+  },
+  "packages/sync-adapter/package.json": {
+    "mtime": 1783240154.8169818,
+    "ast_hash": "f069cf70f4ec741086ff26e6b7af3c2a",
+    "semantic_hash": "f069cf70f4ec741086ff26e6b7af3c2a"
+  },
+  "packages/sync-adapter/src/index.ts": {
+    "mtime": 1783240449.603905,
+    "ast_hash": "d2ad087d097d48cf19db5193b9559be8",
+    "semantic_hash": "d2ad087d097d48cf19db5193b9559be8"
+  },
+  "packages/sync-adapter/src/p2p-client.ts": {
+    "mtime": 1783240439.3950458,
+    "ast_hash": "4d45bd35c6446f8fe66597c29246165e",
+    "semantic_hash": "4d45bd35c6446f8fe66597c29246165e"
+  },
+  "packages/sync-adapter/tsconfig.json": {
+    "mtime": 1783240158.7230244,
+    "ast_hash": "75f2a7ef93a98a39a120cd6f1344f75a",
+    "semantic_hash": "75f2a7ef93a98a39a120cd6f1344f75a"
+  },
+  "packages/wallet-adapter/package.json": {
+    "mtime": 1783240387.045585,
+    "ast_hash": "82a48ceab394fd89d0e89ef417235cfa",
+    "semantic_hash": "82a48ceab394fd89d0e89ef417235cfa"
+  },
+  "packages/wallet-adapter/src/index.ts": {
+    "mtime": 1783240397.2527022,
+    "ast_hash": "7705e5403bf49b40cbec1b96ee2ef2ba",
+    "semantic_hash": "7705e5403bf49b40cbec1b96ee2ef2ba"
+  },
+  "packages/wallet-adapter/tsconfig.json": {
+    "mtime": 1783240391.6006372,
+    "ast_hash": "75f2a7ef93a98a39a120cd6f1344f75a",
+    "semantic_hash": "75f2a7ef93a98a39a120cd6f1344f75a"
+  },
+  "tsconfig.json": {
+    "mtime": 1783239977.382101,
+    "ast_hash": "356046658abe7197de1cbb1ca2829643",
+    "semantic_hash": "356046658abe7197de1cbb1ca2829643"
+  },
+  ".github/workflows/ci.yml": {
+    "mtime": 1783240111.7815154,
+    "ast_hash": "89e9370fa8f7fd86e4139757780873c1",
+    "semantic_hash": "89e9370fa8f7fd86e4139757780873c1"
+  },
+  "PitchOS_Architecture.md": {
+    "mtime": 1783239505.7403252,
+    "ast_hash": "7b6174aa97c253a1a82f0d43544d3c61",
+    "semantic_hash": "7b6174aa97c253a1a82f0d43544d3c61"
+  },
+  "PitchOS_PRD.md": {
+    "mtime": 1783238476.2824814,
+    "ast_hash": "8bb6a66d3f6a61d07d2a32dfc435ee45",
+    "semantic_hash": "8bb6a66d3f6a61d07d2a32dfc435ee45"
+  },
+  "README.md": {
+    "mtime": 1783241181.5346231,
+    "ast_hash": "031a06c0d454e9b56485a25d1e5b5b50",
+    "semantic_hash": "031a06c0d454e9b56485a25d1e5b5b50"
+  },
+  "apps/client/AGENTS.md": {
+    "mtime": 1783240049.162848,
+    "ast_hash": "9e09241799026ac05be315a2f0b50055",
+    "semantic_hash": "9e09241799026ac05be315a2f0b50055"
+  },
+  "apps/client/CLAUDE.md": {
+    "mtime": 1783240049.162848,
+    "ast_hash": "5c27369b226fcf2be8a6cfe52224e767",
+    "semantic_hash": "5c27369b226fcf2be8a6cfe52224e767"
+  },
+  "apps/client/README.md": {
+    "mtime": 1783239999.7230768,
+    "ast_hash": "f15aaa42d5d299d091b1171097ea56ad",
+    "semantic_hash": "f15aaa42d5d299d091b1171097ea56ad"
+  },
+  "apps/next-app/AGENTS.md": {
+    "mtime": 1783241269.0111415,
+    "ast_hash": "9e09241799026ac05be315a2f0b50055",
+    "semantic_hash": "9e09241799026ac05be315a2f0b50055"
+  },
+  "apps/next-app/CLAUDE.md": {
+    "mtime": 1783241269.0111415,
+    "ast_hash": "5c27369b226fcf2be8a6cfe52224e767",
+    "semantic_hash": "5c27369b226fcf2be8a6cfe52224e767"
+  },
+  "apps/next-app/README.md": {
+    "mtime": 1783241267.2199078,
+    "ast_hash": "f15aaa42d5d299d091b1171097ea56ad",
+    "semantic_hash": "f15aaa42d5d299d091b1171097ea56ad"
+  },
+  "task.md": {
+    "mtime": 1783239875.188077,
+    "ast_hash": "f5b1d08e6c4cc2c1089c74a0f6a2abd4",
+    "semantic_hash": "f5b1d08e6c4cc2c1089c74a0f6a2abd4"
+  },
+  "apps/client/public/file.svg": {
+    "mtime": 1783239999.7230768,
+    "ast_hash": "d09f95206c3fa0bb9bd9fefabfd0ea71",
+    "semantic_hash": "d09f95206c3fa0bb9bd9fefabfd0ea71"
+  },
+  "apps/client/public/globe.svg": {
+    "mtime": 1783239999.767859,
+    "ast_hash": "2aaafa6a49b6563925fe440891e32717",
+    "semantic_hash": "2aaafa6a49b6563925fe440891e32717"
+  },
+  "apps/client/public/next.svg": {
+    "mtime": 1783239999.767859,
+    "ast_hash": "8e061864f388b47f33a1c3780831193e",
+    "semantic_hash": "8e061864f388b47f33a1c3780831193e"
+  },
+  "apps/client/public/vercel.svg": {
+    "mtime": 1783239999.7679245,
+    "ast_hash": "c0af2f507b369b085b35ef4bbe3bcf1e",
+    "semantic_hash": "c0af2f507b369b085b35ef4bbe3bcf1e"
+  },
+  "apps/client/public/window.svg": {
+    "mtime": 1783239999.7632883,
+    "ast_hash": "a2760511c65806022ad20adf74370ff3",
+    "semantic_hash": "a2760511c65806022ad20adf74370ff3"
+  },
+  "apps/next-app/public/file.svg": {
+    "mtime": 1783241267.2195382,
+    "ast_hash": "d09f95206c3fa0bb9bd9fefabfd0ea71",
+    "semantic_hash": "d09f95206c3fa0bb9bd9fefabfd0ea71"
+  },
+  "apps/next-app/public/globe.svg": {
+    "mtime": 1783241267.2203257,
+    "ast_hash": "2aaafa6a49b6563925fe440891e32717",
+    "semantic_hash": "2aaafa6a49b6563925fe440891e32717"
+  },
+  "apps/next-app/public/next.svg": {
+    "mtime": 1783241267.2203257,
+    "ast_hash": "8e061864f388b47f33a1c3780831193e",
+    "semantic_hash": "8e061864f388b47f33a1c3780831193e"
+  },
+  "apps/next-app/public/vercel.svg": {
+    "mtime": 1783241267.2204044,
+    "ast_hash": "c0af2f507b369b085b35ef4bbe3bcf1e",
+    "semantic_hash": "c0af2f507b369b085b35ef4bbe3bcf1e"
+  },
+  "apps/next-app/public/window.svg": {
+    "mtime": 1783241267.2204044,
+    "ast_hash": "a2760511c65806022ad20adf74370ff3",
+    "semantic_hash": "a2760511c65806022ad20adf74370ff3"
+  }
+}
