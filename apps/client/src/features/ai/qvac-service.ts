@@ -1,4 +1,6 @@
-import { RosterEntry, Match, MatchEvent } from '@pitchos/shared-types';
+import { RosterEntry, Match } from '@pitchos/shared-types';
+import { db } from '../../lib/db';
+import { getLocalWallet, getWalletBalances } from '../wallet/wallet-store';
 
 export interface AIResponse {
   answer: string;
@@ -32,7 +34,6 @@ let activeModel: string | null = null;
 // Helper to check and import QVAC SDK dynamically
 async function initQvac(): Promise<boolean> {
   if (typeof window !== 'undefined' && !(window as any).Pear) {
-    // Bypassing @qvac/sdk load on standard web browsers to prevent bundle bloat
     return false;
   }
   if (qvacSDK) return true;
@@ -54,8 +55,13 @@ export async function getOrLoadModel(): Promise<string | null> {
 
   try {
     console.log('[QVAC] Loading local Llama-3.2-1B model...');
-    // In Pear, this invokes local filesystem model assets
-    const modelId = await qvacSDK.loadModel(qvacSDK.LLAMA_3_2_1B_INST_Q4_0);
+    // Follow the canonical loadModel options
+    const modelId = await qvacSDK.loadModel({
+      modelSrc: qvacSDK.LLAMA_3_2_1B_INST_Q4_0,
+      onProgress: (progress: any) => {
+        console.log('[QVAC] Load progress:', progress);
+      }
+    });
     activeModel = modelId;
     return modelId;
   } catch (err) {
@@ -64,7 +70,46 @@ export async function getOrLoadModel(): Promise<string | null> {
   }
 }
 
-// Runs streaming inference on-device
+// Unloads model to free GPU and system resources
+export async function unloadActiveModel(): Promise<void> {
+  if (activeModel && qvacSDK) {
+    try {
+      console.log(`[QVAC] Unloading model ${activeModel} to free resources...`);
+      await qvacSDK.unloadModel({ modelId: activeModel });
+      activeModel = null;
+    } catch (err) {
+      console.error('[QVAC] Failed to unload active model:', err);
+    }
+  }
+}
+
+// Local Database Tools (offline-first RAG tool calls)
+async function executeLocalTool(toolName: string, playersList?: RosterEntry[]): Promise<string> {
+  console.log(`[QVAC Tool] Executing tool: ${toolName}`);
+  try {
+    if (toolName === 'getRosterData') {
+      const list = playersList || await db.roster.toArray();
+      if (list.length === 0) return 'The roster is currently empty.';
+      return 'Roster Entries:\n' + list.map(p => `- ${p.name} (${p.position}, Jersey #${p.jerseyNumber || 'N/A'})`).join('\n');
+    }
+    if (toolName === 'getMatchHistory') {
+      const list = await db.matches.toArray();
+      if (list.length === 0) return 'No match records exist in the database.';
+      return 'Match History:\n' + list.map(m => `- ${m.homeTeam} vs ${m.awayTeam} (Score: ${m.score?.home ?? 0}-${m.score?.away ?? 0}, Status: ${m.status})`).join('\n');
+    }
+    if (toolName === 'getWalletBalance') {
+      const wallet = getLocalWallet();
+      if (!wallet) return 'No local wallet is configured.';
+      const balances = await getWalletBalances(wallet.did);
+      return `Wallet Balances for DID ${wallet.did}:\n- USDT: ${balances.balance} ₮\n- Loyalty Points: ${balances.points} PTS`;
+    }
+  } catch (err) {
+    console.error(`[QVAC Tool] Error executing ${toolName}:`, err);
+  }
+  return 'Error retrieving information from the local database.';
+}
+
+// Runs streaming or non-streaming inference on-device
 async function runLocalInference(prompt: string, fallbackText: string): Promise<string> {
   try {
     const modelId = await getOrLoadModel();
@@ -72,23 +117,36 @@ async function runLocalInference(prompt: string, fallbackText: string): Promise<
       return fallbackText;
     }
 
-    const result = await qvacSDK.completion(modelId, {
-      prompt,
-      maxTokens: 250,
-      temperature: 0.7,
-      stream: false
-    });
+    let result;
+    if (typeof qvacSDK.completion === 'function') {
+      try {
+        result = await qvacSDK.completion({
+          modelId,
+          history: [{ role: 'user', content: prompt }]
+        });
+      } catch (err) {
+        result = await qvacSDK.completion(modelId, {
+          prompt,
+          maxTokens: 250,
+          temperature: 0.7,
+          stream: false
+        });
+      }
+    } else {
+      return fallbackText;
+    }
 
     let responseText = '';
     if (typeof result === 'string') {
       responseText = result;
     } else if (result && result.text) {
       responseText = result.text;
-    } else if (result && typeof result.then === 'function') {
-      const resolved = await result;
-      responseText = resolved.text || resolved.answer || JSON.stringify(resolved);
+    } else if (result && result.tokenStream) {
+      for await (const token of result.tokenStream) {
+        responseText += token;
+      }
     } else {
-      responseText = result.text || JSON.stringify(result);
+      responseText = JSON.stringify(result);
     }
 
     return `**[QVAC AI Coach — On-Device Inference (Llama-3)]**\n\n${responseText.trim()}`;
@@ -104,17 +162,37 @@ export async function generateAICoachResponse(
 ): Promise<AIResponse> {
   const q = question.toLowerCase();
 
-  // Dynamic Browser-side Heuristic AI engine
+  // Detect tool intent dynamically
+  let detectedTool: string | null = null;
+  if (q.includes('roster') || q.includes('player') || q.includes('who is on')) {
+    detectedTool = 'getRosterData';
+  } else if (q.includes('match') || q.includes('score') || q.includes('game') || q.includes('played')) {
+    detectedTool = 'getMatchHistory';
+  } else if (q.includes('balance') || q.includes('money') || q.includes('usdt') || q.includes('points') || q.includes('wallet')) {
+    detectedTool = 'getWalletBalance';
+  }
+
+  let toolData = '';
+  if (detectedTool) {
+    toolData = await executeLocalTool(detectedTool, players);
+  }
+
   let fallbackAnswer = '';
-  const matchingPlayer = players.find(p => q.includes(p.name.toLowerCase()));
-  
-  if (matchingPlayer) {
-    const jerseyText = matchingPlayer.jerseyNumber ? `wearing jersey #${matchingPlayer.jerseyNumber}` : 'unassigned jersey';
-    fallbackAnswer = `**[QVAC AI Coach — Player Analysis: ${matchingPlayer.name}]**\n\n` +
-      `Analyzing positional positioning logs for ${matchingPlayer.name} (${matchingPlayer.position}, ${jerseyText}):\n\n` +
-      `* **Technical Strengths**: High spatial awareness in transition blocks, exceptional compliance with photo/data consents.\n` +
-      `* **Tactical Role**: As a ${matchingPlayer.position}, they successfully lock passing lanes when the defense contracts.\n\n` +
-      `**Coaching Recommendation**: Incorporate lateral agility sprints and rapid acceleration drills this week.`;
+  if (detectedTool === 'getRosterData') {
+    fallbackAnswer = `**[QVAC AI Coach — Roster Intelligence]**\n\n` +
+      `Here is the active squad roster retrieved directly from your on-device database:\n\n` +
+      `${toolData}\n\n` +
+      `**Coaching Recommendation**: Keep player contact consents updated. Run standard acceleration drills this week.`;
+  } else if (detectedTool === 'getMatchHistory') {
+    fallbackAnswer = `**[QVAC AI Coach — Match History Feed]**\n\n` +
+      `Retrieved the following match database log logs offline:\n\n` +
+      `${toolData}\n\n` +
+      `**Coaching Recommendation**: Focus on transition compactness in mid-blocks for upcoming matches.`;
+  } else if (detectedTool === 'getWalletBalance') {
+    fallbackAnswer = `**[QVAC AI Coach — Autonomous Wallet Auditor]**\n\n` +
+      `Audited local ledger balances and address status:\n\n` +
+      `${toolData}\n\n` +
+      `**Coaching Recommendation**: Keep a minimum of 100 USDT in reserve to register for upcoming premium tournament events.`;
   } else if (q.includes('tactics') || q.includes('formation') || q.includes('4-3-3') || q.includes('defend')) {
     fallbackAnswer = `**[QVAC AI Coach — Tactical Coordinator]**\n\n` +
       `Tactical breakdown for defending or executing transitions against structured blocks:\n\n` +
@@ -132,14 +210,15 @@ export async function generateAICoachResponse(
     fallbackAnswer = `**[QVAC AI Coach — Heuristic Advisor]**\n\n` +
       `Processed query: "${question}"\n\n` +
       `Based on local database context containing **${players.length} players**, I recommend focusing on fundamental drills.\n\n` +
-      `Try querying about a specific player profile (e.g., *"How is Sarah doing?"*) or ask for tactical formations (e.g., *"How to defend a 4-3-3?"*).`;
+      `Try querying about your local team roster (e.g. *"Show roster"*), recent matches (*"Show match history"*), or wallet balances (*"Show wallet balance"*).`;
   }
 
-  // Try real local model weights (Llama-3.2), otherwise return the dynamic heuristic AI summary
-  const answer = await runLocalInference(
-    `You are an expert football coach. Answer this question concisely for a grassroots club: ${question}. Context: Roster has ${players.length} players.`,
-    fallbackAnswer
-  );
+  let finalPrompt = `You are a football coach. Answer this question: ${question}. Context: Roster has ${players.length} players.`;
+  if (detectedTool && toolData) {
+    finalPrompt += `\nLocal Database Context [Tool: ${detectedTool}]:\n${toolData}`;
+  }
+
+  const answer = await runLocalInference(finalPrompt, fallbackAnswer);
 
   return {
     answer,
@@ -151,7 +230,6 @@ export async function generatePredictionRationale(
   homeTeam: string,
   awayTeam: string
 ): Promise<PredictionRationale> {
-  // Deterministic local mock probabilities based on string hashes
   const hash = (homeTeam.length + awayTeam.length) % 10;
   let homeProbability = 42 + hash * 3;
   let awayProbability = 28 + (5 - hash) * 2;
@@ -210,12 +288,10 @@ export async function generateMatchPostAnalysis(
       ? match.awayTeam 
       : 'Draw';
 
-  // Extract dynamic event stats
   const goals = match.events.filter(e => e.type === 'goal');
   const subs = match.events.filter(e => e.type === 'substitution');
   const cards = match.events.filter(e => e.type.includes('card'));
 
-  // Build dynamic heuristic match summary
   let defaultSummary = '';
   if (winner === 'Draw') {
     defaultSummary = `Match ended in a tactical ${homeScore}-${awayScore} draw between ${match.homeTeam} and ${match.awayTeam}. `;
@@ -224,22 +300,19 @@ export async function generateMatchPostAnalysis(
   }
   defaultSummary += `A total of ${match.events.length} matchday events were logged chronologically, including ${goals.length} goals, ${subs.length} tactical substitutions, and ${cards.length} cards.`;
 
-  // Compute dynamic player ratings
   const playerRatings: Record<string, number> = {};
   let mvp = 'None';
   let highestRating = 0;
 
   players.forEach((p, idx) => {
-    // Generate logical rating based on player role and goals scored
     const goalsScored = goals.filter(g => g.playerId === p.playerId).length;
     const cardsReceived = cards.filter(c => c.playerId === p.playerId).length;
     
     let rating = 7.0 + (goalsScored * 1.5) - (cardsReceived * 0.8) + ((idx % 3) * 0.4);
     if (winner !== 'Draw' && p.position === 'Defender') {
-      rating += 0.3; // defender victory bonus
+      rating += 0.3;
     }
     
-    // Clamp between 5.5 and 9.9
     rating = parseFloat(Math.min(9.9, Math.max(5.5, rating)).toFixed(1));
     playerRatings[p.playerId] = rating;
 
@@ -249,7 +322,6 @@ export async function generateMatchPostAnalysis(
     }
   });
 
-  // Dynamic heuristic tactical tip based on match stats
   let defaultTacticalTip = '';
   if (cards.length >= 2) {
     defaultTacticalTip = 'High foul count recorded. Focus on defensive slide shifts and disciplined body positioning during 1v1s.';

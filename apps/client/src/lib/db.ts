@@ -9,6 +9,14 @@ import {
   WalletTransaction
 } from '@pitchos/shared-types';
 
+export interface ChatMessage {
+  id: string;
+  senderDid: string;
+  content: string;
+  timestamp: number;
+  signature: string;
+}
+
 export class PitchOSDatabase extends Dexie {
   clubs!: Table<Club, string>;
   members!: Table<Member, string>;
@@ -17,6 +25,7 @@ export class PitchOSDatabase extends Dexie {
   tournaments!: Table<Tournament, string>;
   predictionPools!: Table<PredictionPool, string>;
   transactions!: Table<WalletTransaction, string>;
+  chatMessages!: Table<ChatMessage, string>;
 
   constructor() {
     super('PitchOSDatabase');
@@ -40,6 +49,18 @@ export class PitchOSDatabase extends Dexie {
       tournaments: 'id, clubId, name, status',
       predictionPools: 'id, tournamentId, matchId, status',
       transactions: 'id, txHash, senderDid, recipientDid, currency, type, timestamp'
+    });
+
+    // Schema version 3 - Adds P2P Chat Messages table for sync-swarms
+    this.version(3).stores({
+      clubs: 'id, name, createdAt',
+      members: 'id, did, role, joinedAt',
+      roster: 'id, playerId, name, position, guardianDid',
+      matches: 'id, clubId, tournamentId, status',
+      tournaments: 'id, clubId, name, status',
+      predictionPools: 'id, tournamentId, matchId, status',
+      transactions: 'id, txHash, senderDid, recipientDid, currency, type, timestamp',
+      chatMessages: 'id, senderDid, timestamp'
     });
   }
 }

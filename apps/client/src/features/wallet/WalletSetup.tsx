@@ -8,12 +8,14 @@ import {
   deleteLocalWallet, 
   getWalletBalances, 
   createTransaction, 
-  requestFaucet 
+  requestFaucet,
+  initWDK,
+  activeWDKInstance
 } from './wallet-store';
 import { trackEvent } from '../../lib/telemetry';
 import { db } from '../../lib/db';
 import { WalletTransaction } from '@pitchos/shared-types';
-import { Key } from '@phosphor-icons/react';
+import { Key, ShieldCheck } from '@phosphor-icons/react';
 
 interface WalletSetupProps {
   onWalletLoaded: (wallet: WalletState) => void;
@@ -37,6 +39,9 @@ export default function WalletSetup({ onWalletLoaded }: WalletSetupProps) {
   const loadWalletData = useCallback(async () => {
     const localKeys = getLocalWallet();
     if (localKeys) {
+      if (localKeys.seedPhrase) {
+        await initWDK(localKeys.seedPhrase);
+      }
       const balances = await getWalletBalances(localKeys.did);
       const fullWallet = {
         ...localKeys,
@@ -240,6 +245,27 @@ export default function WalletSetup({ onWalletLoaded }: WalletSetupProps) {
                   <span className="block text-xs text-text-secondary uppercase tracking-wider mb-1">Loyalty Points</span>
                   <span className="text-xl font-bold text-pitch-gold">{wallet.points} PTS</span>
                 </div>
+              </div>
+
+              {/* WDK Active Policy Visualizer */}
+              <div className="bg-bg-dark border border-border-dark p-4 rounded-xl mt-4 space-y-2">
+                <span className="block text-[10px] text-text-secondary uppercase tracking-widest font-bold flex items-center gap-1">
+                  <ShieldCheck size={12} className="text-primary-green" />
+                  WDK Policy Engine
+                </span>
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] text-text-secondary">Enforced Status:</span>
+                  <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded uppercase ${
+                    activeWDKInstance ? 'bg-primary-green/10 text-primary-green' : 'bg-text-secondary/10 text-text-secondary'
+                  }`}>
+                    {activeWDKInstance ? 'Active' : 'Fallback / Direct'}
+                  </span>
+                </div>
+                {activeWDKInstance && (
+                  <div className="text-[11px] text-text-secondary leading-relaxed bg-card-dark p-2 border border-border-dark rounded mt-1 font-mono">
+                    <span className="text-primary-green font-bold">&bull; usdt-spending-limit:</span> Deny transfers &gt; 50 USDT
+                  </div>
+                )}
               </div>
 
               <button

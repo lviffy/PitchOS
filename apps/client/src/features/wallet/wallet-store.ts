@@ -1,10 +1,73 @@
-import { generateWalletKeyPair, WalletKeyPair } from '@pitchos/wallet-adapter';
+import { generateWalletKeyPair, WalletKeyPair, createPitchOSWDKInstance } from '@pitchos/wallet-adapter';
 import { WalletTransaction } from '@pitchos/shared-types';
 import { db } from '../../lib/db';
 
 export interface WalletState extends WalletKeyPair {
   balance: number;
   points: number;
+}
+
+// Global active WDK references for policy enforcement
+export let activeWDKInstance: any = null;
+export let activeWDKAccount: any = null;
+
+export async function initWDK(seedPhrase: string) {
+  if (activeWDKInstance) return activeWDKInstance;
+  try {
+    const callbacks = {
+      getBalance: async (did: string) => {
+        const balances = await getWalletBalances(did);
+        return balances.balance;
+      },
+      getTokenBalance: async (did: string, token: string) => {
+        const balances = await getWalletBalances(did);
+        return token === 'Points' ? balances.points : balances.balance;
+      },
+      transfer: async (options: { amount: number, recipient: string, token: string }) => {
+        // This callback executes the database write but bypasses infinite proxy loop
+        const walletKeys = getLocalWallet();
+        if (!walletKeys) throw new Error('No local wallet found');
+        return await writeLedgerTransaction(
+          walletKeys.did,
+          options.recipient,
+          options.amount,
+          options.token === 'Points' ? 'Points' : 'USDT',
+          'transfer',
+          walletKeys.privateKeyHex
+        );
+      }
+    };
+
+    const wdk = await createPitchOSWDKInstance(seedPhrase, callbacks);
+    if (wdk) {
+      // Register Tether WDK USDT spending limit policy (Deny transfer operations if USDT amount > 50)
+      wdk.registerPolicy({
+        id: 'usdt-spending-limit',
+        name: 'USDT Spending Limit',
+        scope: 'project',
+        rules: [{
+          name: 'Limit Rule',
+          reason: 'USDT transaction exceeds the active policy spending limit of 50 USDT.',
+          operation: 'transfer',
+          action: 'DENY',
+          conditions: [
+            (context: any) => {
+              const amount = Number(context.params?.amount || 0);
+              const token = context.params?.token || 'USDT';
+              return token === 'USDT' && amount > 50;
+            }
+          ]
+        }]
+      });
+
+      activeWDKInstance = wdk;
+      activeWDKAccount = await wdk.getAccount('pitchos', 0);
+      console.log('[WDK] Active WDK Account registered with policy rule: Limit transfers > 50 USDT');
+    }
+  } catch (err) {
+    console.warn('[WDK] Engine registration failed, falling back to browser crypto:', err);
+  }
+  return activeWDKInstance;
 }
 
 export function getLocalWallet(): WalletState | null {
@@ -35,6 +98,8 @@ export function saveLocalWallet(wallet: WalletState) {
 export function deleteLocalWallet() {
   if (typeof window === 'undefined') return;
   localStorage.removeItem('pitchos_wallet');
+  activeWDKInstance = null;
+  activeWDKAccount = null;
 }
 
 export async function getWalletBalances(did: string): Promise<{ balance: number; points: number }> {
@@ -63,7 +128,8 @@ export async function getWalletBalances(did: string): Promise<{ balance: number;
   }
 }
 
-export async function createTransaction(
+// Inner helper that does the database ledger writing directly
+async function writeLedgerTransaction(
   senderDid: string,
   recipientDid: string,
   amount: number,
@@ -75,11 +141,9 @@ export async function createTransaction(
   const timestamp = Date.now();
   const payload = `${senderDid}:${recipientDid}:${amount}:${currency}:${type}:${timestamp}`;
 
-  // Sign message using Subtle Crypto wrapper from wallet-adapter
   const { signMessage } = await import('@pitchos/wallet-adapter');
   const signature = await signMessage(privateKeyHex, payload);
 
-  // Generate SHA-256 transaction hash
   const encoder = new TextEncoder();
   const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(payload + signature));
   const txHash = Array.from(new Uint8Array(hashBuffer))
@@ -98,10 +162,38 @@ export async function createTransaction(
     signature
   };
 
-  // Record transaction in local IndexedDB ledger
   await db.transactions.put(tx);
   console.log(`[WalletStore] Recorded transaction ${txHash.slice(0, 16)} on ledger.`);
   return tx;
+}
+
+export async function createTransaction(
+  senderDid: string,
+  recipientDid: string,
+  amount: number,
+  currency: 'USDT' | 'Points',
+  type: WalletTransaction['type'],
+  privateKeyHex: string
+): Promise<WalletTransaction> {
+  // If active WDK proxy is available, route transfer transactions through WDK policy check
+  if (type === 'transfer' && activeWDKAccount) {
+    console.log('[WDK] Routing transfer through policy proxy engine...');
+    // This will throw PolicyViolationError if amount > 50 USDT
+    const txResult = await activeWDKAccount.transfer({
+      amount,
+      recipient: recipientDid,
+      token: currency
+    });
+    
+    // Read the transaction from database that callbacks.transfer wrote
+    const allTxs = await db.transactions.where('txHash').equals(txResult.hash).toArray();
+    if (allTxs.length > 0) {
+      return allTxs[0];
+    }
+  }
+
+  // Fallback direct execution (for faucets/refunds or if WDK is disabled)
+  return await writeLedgerTransaction(senderDid, recipientDid, amount, currency, type, privateKeyHex);
 }
 
 export async function requestFaucet(
@@ -131,6 +223,10 @@ export async function createNewWallet(): Promise<WalletState> {
   };
 
   saveLocalWallet(wallet);
+
+  if (keys.seedPhrase) {
+    await initWDK(keys.seedPhrase);
+  }
 
   // Seed initial welcome tokens on ledger
   await requestFaucet(wallet.did, 'USDT', 100, wallet.privateKeyHex);

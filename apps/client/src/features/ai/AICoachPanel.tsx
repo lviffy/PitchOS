@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { generateAICoachResponse, AIResponse } from './qvac-service';
+import { generateAICoachResponse, AIResponse, unloadActiveModel } from './qvac-service';
 import { RosterEntry } from '@pitchos/shared-types';
 import { db } from '../../lib/db';
 
@@ -19,6 +19,7 @@ export default function AICoachPanel() {
     });
     return () => {
       active = false;
+      unloadActiveModel();
     };
   }, []);
 

@@ -10,6 +10,7 @@ import {
   recordAttendance,
   getStoredAttendance
 } from './club-store';
+import { getLocalWallet } from '../wallet/wallet-store';
 
 interface ClubViewProps {
   did: string;
@@ -23,6 +24,8 @@ export default function ClubView({ did }: ClubViewProps) {
   const [club, setClub] = useState<Club | null>(null);
   const [players, setPlayers] = useState<RosterEntry[]>([]);
   const [attendance, setAttendance] = useState<Record<string, string[]>>({});
+  const [chatMessages, setChatMessages] = useState<any[]>([]);
+  const [chatInput, setChatInput] = useState('');
 
   // Form states
   const [clubName, setClubName] = useState('');
@@ -51,9 +54,12 @@ export default function ClubView({ did }: ClubViewProps) {
         const allPlayers = await db.roster.toArray();
         setPlayers(allPlayers);
         setAttendance(getStoredAttendance());
+        const allMsgs = await db.chatMessages.orderBy('timestamp').toArray();
+        setChatMessages(allMsgs);
       } else {
         setClub(null);
         setPlayers([]);
+        setChatMessages([]);
       }
     } catch (err) {
       console.error('Failed to load DB data', err);
@@ -71,9 +77,14 @@ export default function ClubView({ did }: ClubViewProps) {
           setPlayers(allPlayers);
           setAttendance(getStoredAttendance());
         });
+        db.chatMessages.orderBy('timestamp').toArray().then(allMsgs => {
+          if (!active) return;
+          setChatMessages(allMsgs);
+        });
       } else {
         setClub(null);
         setPlayers([]);
+        setChatMessages([]);
       }
     });
     return () => {
@@ -192,6 +203,26 @@ export default function ClubView({ did }: ClubViewProps) {
     }
   };
 
+  const handleSendChat = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatInput.trim()) return;
+
+    setError('');
+    try {
+      const localKeys = getLocalWallet();
+      if (!localKeys) {
+        setError('Setup wallet first to authorize signatures.');
+        return;
+      }
+      const { sendP2PMessage } = await import('./club-store');
+      await sendP2PMessage(chatInput, did, localKeys.privateKeyHex);
+      setChatInput('');
+      refreshData();
+    } catch (err: any) {
+      setError(`P2P send failed: ${err.message}`);
+    }
+  };
+
   const currentAttendees = attendance[attendanceDate] || [];
   const activeAttendees = dirtyAttendees ?? players.reduce((acc, p) => {
     acc[p.playerId] = currentAttendees.includes(p.playerId);
@@ -283,6 +314,63 @@ export default function ClubView({ did }: ClubViewProps) {
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {/* P2P Swarm Chat Room */}
+        {activeTopic && (
+          <div className="bg-card-dark border border-border-dark rounded-xl p-6 flex flex-col h-80">
+            <h3 className="font-sans text-lg font-bold text-text-primary mb-1 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-primary-green animate-pulse"></span>
+              P2P Swarm Chat
+            </h3>
+            <p className="text-[11px] text-text-secondary mb-3 uppercase tracking-wider">Zero-server fan room</p>
+            
+            {/* Feed */}
+            <div className="flex-1 overflow-y-auto space-y-2 bg-bg-dark border border-border-dark p-3 rounded-lg text-xs scrollbar-none">
+              {chatMessages.length === 0 ? (
+                <div className="h-full flex items-center justify-center text-text-secondary text-[11px]">
+                  No P2P swarm messages logged.
+                </div>
+              ) : (
+                chatMessages.map((msg, index) => {
+                  const isMe = msg.senderDid === did;
+                  return (
+                    <div key={msg.id || index} className="space-y-1">
+                      <div className="flex items-center justify-between text-[10px] text-text-secondary">
+                        <span className="font-mono text-primary-green">
+                          {isMe ? 'You' : `${msg.senderDid.slice(0, 12)}...`}
+                        </span>
+                        <span className="text-[9px] bg-primary-green/10 text-primary-green px-1 rounded border border-primary-green/20">
+                          VERIFIED SIG
+                        </span>
+                      </div>
+                      <div className="bg-card-dark p-2 rounded border border-border-dark text-text-primary break-words">
+                        {msg.content}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Input Form */}
+            <form onSubmit={handleSendChat} className="mt-3 flex gap-2">
+              <input
+                type="text"
+                required
+                placeholder="Type swarm message..."
+                value={chatInput}
+                onChange={e => setChatInput(e.target.value)}
+                className="flex-1 bg-bg-dark border border-border-dark rounded-lg px-3 py-1.5 text-xs text-text-primary focus:outline-none focus:border-primary-green"
+              />
+              <button
+                type="submit"
+                className="bg-primary-green hover:bg-primary-green-hover text-black font-bold px-3 py-1.5 rounded-lg text-xs transition uppercase tracking-wider"
+              >
+                Send
+              </button>
+            </form>
           </div>
         )}
       </div>

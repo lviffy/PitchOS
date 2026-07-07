@@ -56,6 +56,9 @@ export function initClubSync(
           localStorage.setItem('pitchos_attendance', JSON.stringify(records));
           break;
         }
+        case 'send_p2p_message':
+          await db.chatMessages.put(data.message);
+          break;
         case 'create_match':
           await db.matches.put(data.match);
           break;
@@ -288,5 +291,31 @@ export async function recordAttendance(date: string, playerIds: string[]): Promi
   await localCore.append(activeDid, {
     type: 'update_attendance',
     data: { date, playerIds }
+  }, `sig_${activeDid}`);
+}
+
+export async function sendP2PMessage(content: string, senderDid: string, privateKeyHex: string): Promise<void> {
+  if (!localCore || !activeDid) {
+    throw new Error('P2P Sync not initialized.');
+  }
+
+  const id = Math.random().toString(36).substring(2, 9);
+  const timestamp = Date.now();
+  const payload = `${senderDid}:${content}:${timestamp}`;
+
+  const { signMessage } = await import('@pitchos/wallet-adapter');
+  const signature = await signMessage(privateKeyHex, payload);
+
+  const message = {
+    id,
+    senderDid,
+    content,
+    timestamp,
+    signature
+  };
+
+  await localCore.append(activeDid, {
+    type: 'send_p2p_message',
+    data: { message }
   }, `sig_${activeDid}`);
 }
