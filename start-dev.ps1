@@ -22,15 +22,31 @@ if (Test-Path $envFile) {
     }
 }
 
-# 1b. Write .env.local to each Next.js app so vars are available at build time
-# (Next.js reads .env.local from its own directory, not the monorepo root)
+# 1b. Propagate root .env vars into each Next.js app's .env.local (merge, never overwrite existing keys)
+# App-level .env.local files are the source of truth — root vars are additive only.
 foreach ($appDir in @("apps/client", "apps/next-app")) {
     $localEnv = Join-Path (Join-Path $PSScriptRoot $appDir) ".env.local"
-    $lines = @()
-    foreach ($kv in $envVars.GetEnumerator()) {
-        $lines += "$($kv.Key)=$($kv.Value)"
+    # Read existing keys from the app .env.local
+    $existingKeys = @{}
+    if (Test-Path $localEnv) {
+        Get-Content $localEnv | ForEach-Object {
+            $l = $_.Trim()
+            if ($l -and -not $l.StartsWith("#")) {
+                $p = $l -split '=', 2
+                if ($p.Length -eq 2) { $existingKeys[$p[0].Trim()] = $true }
+            }
+        }
     }
-    $lines | Set-Content -Path $localEnv -Encoding UTF8
+    # Append only root vars that are not already present
+    $toAdd = @()
+    foreach ($kv in $envVars.GetEnumerator()) {
+        if (-not $existingKeys.ContainsKey($kv.Key)) {
+            $toAdd += "$($kv.Key)=$($kv.Value)"
+        }
+    }
+    if ($toAdd.Count -gt 0) {
+        $toAdd | Add-Content -Path $localEnv -Encoding UTF8
+    }
 }
 
 # 2. Ensure PORT is defined (default to 3001 for relay-service)
@@ -81,12 +97,18 @@ Write-Host "==================================================" -ForegroundColor
 # Run Pear desktop app
 if (Get-Command pear -ErrorAction SilentlyContinue) {
     pear run ./apps/pear-desktop
+    # Clean up processes upon pear application closure
+    Write-Host "[STOP] Shutting down dev servers..." -ForegroundColor Yellow
+    Stop-Process -Id $clientProcess.Id -Force -ErrorAction SilentlyContinue
+    Stop-Process -Id $relayProcess.Id -Force -ErrorAction SilentlyContinue
+    Stop-Process -Id $nextAppProcess.Id -Force -ErrorAction SilentlyContinue
 } else {
     Write-Warning "[WARN] 'pear' command not found. You can run Option B: standard browser at http://localhost:3000"
+    Write-Host ""
+    Write-Host "Press [Enter] to stop dev servers and exit..." -ForegroundColor Cyan
+    Read-Host
+    Write-Host "[STOP] Shutting down dev servers..." -ForegroundColor Yellow
+    Stop-Process -Id $clientProcess.Id -Force -ErrorAction SilentlyContinue
+    Stop-Process -Id $relayProcess.Id -Force -ErrorAction SilentlyContinue
+    Stop-Process -Id $nextAppProcess.Id -Force -ErrorAction SilentlyContinue
 }
-
-# Clean up processes upon pear application closure
-Write-Host "[STOP] Shutting down dev servers..." -ForegroundColor Yellow
-Stop-Process -Id $clientProcess.Id -Force -ErrorAction SilentlyContinue
-Stop-Process -Id $relayProcess.Id -Force -ErrorAction SilentlyContinue
-Stop-Process -Id $nextAppProcess.Id -Force -ErrorAction SilentlyContinue

@@ -1,16 +1,31 @@
+const path = require('path');
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: 'class',
   content: [
-    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/features/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/lib/**/*.{js,ts,jsx,tsx,mdx}',
+    path.resolve(__dirname, './src/pages/**/*.{js,ts,jsx,tsx,mdx}'),
+    path.resolve(__dirname, './src/components/**/*.{js,ts,jsx,tsx,mdx}'),
+    path.resolve(__dirname, './src/app/**/*.{js,ts,jsx,tsx,mdx}'),
+    path.resolve(__dirname, './src/features/**/*.{js,ts,jsx,tsx,mdx}'),
+    path.resolve(__dirname, './src/lib/**/*.{js,ts,jsx,tsx,mdx}'),
   ],
   theme: {
     extend: {
       colors: {
+        // App specific custom colors
+        'bg-dark': 'var(--background)',
+        'card-dark': 'var(--card)',
+        'card-hover': 'var(--card-hover)',
+        'border-dark': 'var(--border)',
+        'text-primary': 'var(--foreground)',
+        'text-secondary': 'var(--muted-foreground)',
+        'primary-green': 'var(--primary)',
+        'primary-green-hover': 'var(--primary-hover)',
+        'pitch-gold': 'var(--gold)',
+        'pitch-red': 'var(--red)',
+
+        // Standard shadcn variables
         background: 'var(--background)',
         foreground: 'var(--foreground)',
         card: {

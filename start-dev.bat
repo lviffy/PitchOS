@@ -52,6 +52,9 @@ if %errorlevel% equ 0 (
     call pear run ./apps/pear-desktop
 ) else (
     echo [WARN] 'pear' command not found. You can run Option B: standard browser at http://localhost:3000
+    echo.
+    echo Press any key to stop dev servers and exit...
+    pause >nul
 )
 
 echo.

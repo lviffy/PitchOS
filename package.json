@@ -14,7 +14,8 @@
     "build": "bun run --filter '*' build",
     "lint": "bun run --filter '*' lint",
     "typecheck": "bun run --filter '*' typecheck",
-    "depcruise": "depcruise --config .dependency-cruiser.js apps/client/src"
+    "depcruise": "depcruise --config .dependency-cruiser.js apps/client/src",
+    "postinstall": "powershell -Command \"Get-ChildItem -Path node_modules -Filter '*.node' -Recurse -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue\""
   },
   "devDependencies": {
     "dependency-cruiser": "^18.0.0",
