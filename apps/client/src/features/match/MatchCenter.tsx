@@ -32,6 +32,83 @@ export default function MatchCenter() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
+  // Voice and chat states
+  const [isRecording, setIsRecording] = useState(false);
+  const [speechTranscript, setSpeechTranscript] = useState('');
+  const [chatMessages, setChatMessages] = useState<any[]>([]);
+  const [chatInput, setChatInput] = useState('');
+
+  const startSpeechRecognition = () => {
+    if (typeof window === 'undefined') return;
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setError('Local speech-to-text dictation is not supported in this browser. Try Chrome/Safari sandbox.');
+      return;
+    }
+    setError('');
+    setSuccess('');
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    setIsRecording(true);
+    recognition.start();
+
+    recognition.onresult = async (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setSpeechTranscript(transcript);
+      setIsRecording(false);
+      
+      try {
+        const { parseVoiceMatchCommand } = await import('../ai/qvac-service');
+        const parsed = parseVoiceMatchCommand(transcript, players);
+        if (parsed) {
+          setEventMinute(parsed.minute || 1);
+          if (parsed.playerId) setEventPlayer(parsed.playerId);
+          if (parsed.playerOutId) setSubPlayerIn(parsed.playerOutId);
+          if (parsed.details) setEventDetails(parsed.details);
+          
+          setSuccess(`Voice matched: "${transcript}" -> Set event parameter to ${parsed.eventType}. Ready to log.`);
+        } else {
+          setError(`Speech recognized: "${transcript}" (Unable to map to match controls).`);
+        }
+      } catch (err: any) {
+        setError(`Speech parser error: ${err.message}`);
+      }
+    };
+
+    recognition.onerror = (event: any) => {
+      setIsRecording(false);
+      setError(`Speech dictation stopped or failed: ${event.error}`);
+    };
+
+    recognition.onend = () => {
+      setIsRecording(false);
+    };
+  };
+
+  const handleSendChat = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatInput.trim()) return;
+
+    setError('');
+    try {
+      const walletStr = localStorage.getItem('pitchos_wallet');
+      if (!walletStr) {
+        setError('Setup wallet first to authorize P2P chat signatures.');
+        return;
+      }
+      const walletObj = JSON.parse(walletStr);
+      const { sendP2PMessage } = await import('../club/club-store');
+      await sendP2PMessage(chatInput, walletObj.did, walletObj.privateKeyHex);
+      setChatInput('');
+      refreshData();
+    } catch (err: any) {
+      setError(`P2P send failed: ${err.message}`);
+    }
+  };
+
   const refreshData = useCallback(async () => {
     try {
       const allMatches = await db.matches.toArray();
@@ -39,6 +116,9 @@ export default function MatchCenter() {
       
       const allPlayers = await db.roster.toArray();
       setPlayers(allPlayers);
+
+      const allMsgs = await db.chatMessages.orderBy('timestamp').toArray();
+      setChatMessages(allMsgs);
 
       const currentActiveId = activeMatchIdRef.current;
       if (currentActiveId) {
@@ -245,6 +325,61 @@ export default function MatchCenter() {
             </div>
           )}
         </div>
+
+        {/* P2P Swarm Chat Panel */}
+        <div className="bg-card-dark border border-border-dark rounded-xl p-6 flex flex-col h-80">
+          <h3 className="font-sans text-lg font-bold text-text-primary mb-1 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-primary-green animate-pulse"></span>
+            Match Swarm Chat
+          </h3>
+          <p className="text-[11px] text-text-secondary mb-3 uppercase tracking-wider">Sideline P2P updates feed</p>
+          
+          <div className="flex-1 overflow-y-auto space-y-2 bg-bg-dark border border-border-dark p-3 rounded-lg text-xs scrollbar-none">
+            {chatMessages.length === 0 ? (
+              <div className="h-full flex items-center justify-center text-text-secondary text-[11px]">
+                No P2P swarm messages logged.
+              </div>
+            ) : (
+              chatMessages.slice(-20).map((msg, index) => {
+                const walletStr = localStorage.getItem('pitchos_wallet');
+                const walletObj = walletStr ? JSON.parse(walletStr) : null;
+                const isMe = walletObj && msg.senderDid === walletObj.did;
+                return (
+                  <div key={msg.id || index} className="space-y-0.5">
+                    <div className="flex items-center justify-between text-[10px] text-text-secondary">
+                      <span className="font-mono text-primary-green">
+                        {isMe ? 'You' : `${msg.senderDid.slice(0, 12)}...`}
+                      </span>
+                      <span className="text-[9px] bg-primary-green/10 text-primary-green px-1 rounded border border-primary-green/20">
+                        SIG VERIFIED
+                      </span>
+                    </div>
+                    <div className="bg-card-dark p-2 rounded border border-border-dark text-text-primary break-words font-mono">
+                      {msg.content}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          <form onSubmit={handleSendChat} className="mt-3 flex gap-2">
+            <input
+              type="text"
+              required
+              placeholder="Type chat to sideline..."
+              value={chatInput}
+              onChange={e => setChatInput(e.target.value)}
+              className="flex-1 bg-bg-dark border border-border-dark rounded-lg px-3 py-1.5 text-xs text-text-primary focus:outline-none focus:border-primary-green"
+            />
+            <button
+              type="submit"
+              className="bg-primary-green hover:bg-primary-green-hover text-black font-bold px-3 py-1.5 rounded-lg text-xs transition uppercase tracking-wider"
+            >
+              Send
+            </button>
+          </form>
+        </div>
       </div>
 
       {/* Match Console View */}
@@ -311,7 +446,30 @@ export default function MatchCenter() {
             {/* Event Logging Section (Only if live) */}
             {activeMatch.status === 'live' && (
               <div className="border border-border-dark rounded-xl p-4 bg-bg-dark bg-opacity-30 space-y-4">
-                <h4 className="font-sans text-sm font-bold text-text-primary uppercase tracking-wider">Log Match Event</h4>
+                <div className="flex justify-between items-center">
+                  <h4 className="font-sans text-sm font-bold text-text-primary uppercase tracking-wider">Log Match Event</h4>
+                  <button
+                    type="button"
+                    onClick={startSpeechRecognition}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                      isRecording 
+                        ? 'bg-pitch-red text-white animate-pulse' 
+                        : 'bg-primary-green hover:bg-primary-green-hover text-black'
+                    }`}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
+                    </svg>
+                    {isRecording ? 'Listening...' : 'Voice Dictate'}
+                  </button>
+                </div>
+
+                {speechTranscript && (
+                  <div className="bg-bg-dark border border-border-dark p-2 rounded-lg text-xs text-text-secondary font-mono leading-relaxed">
+                    <span className="text-primary-green font-bold block uppercase tracking-wider text-[10px] mb-0.5">Sideline Speech Received</span>
+                    "{speechTranscript}"
+                  </div>
+                )}
                 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>

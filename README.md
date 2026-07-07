@@ -18,23 +18,69 @@ PitchOS operates using a decoupled, sovereign architecture:
 
 ---
 
-## 2. Quick Start
+## 2. Quick Start & Execution
 
-Run the entire suite locally using Bun or Node. NPM workspaces are configured.
+Run the entire suite locally. NPM workspaces are configured.
 
-### Boot Dev Environment
+### Prerequisites
 
-From the monorepo root, install dependencies and start both the Next.js client (`localhost:3000`) and the WebSocket Relay (`ws://localhost:3001`):
+To evaluate the full Tether developer stack (real P2P swarming and on-device AI inference), you should run the application inside the Pear Desktop container.
+
+1. **Install Pear CLI** globally:
+   ```bash
+   npm install -g pear
+   ```
+2. **Install Bun** (if not installed):
+   ```bash
+   curl -fsSL https://bun.sh/install | bash
+   ```
+
+### Execution Options
+
+#### Option A: Pear Desktop Container (Recommended for full P2P & Local AI testing)
+
+Running in the Pear container enables real `hyperswarm` discovery, `hypercore` sync replication, and `@qvac/sdk` on-device Vulkan LLM inference:
+
+```bash
+# Make the startup script executable and run it
+chmod +x ./start-dev.sh
+./start-dev.sh
+```
+This script boots the Next.js frontend, backend/relay servers, and launches the sovereign **Pear Desktop Application**.
+
+#### Option B: Standard Browser Sandbox (Fallback Mode)
+
+If you only want to test the UI logic in a standard browser:
 
 ```bash
 # Install dependencies
 npm install
 
-# Start client and relay in parallel
+# Start development servers
 npm run dev
 ```
+Open `http://localhost:3000` in your browser. Note that in standard browsers, network sync will fall back to the WebSocket signaling relay, and AI operations will fall back to local rule-based heuristics.
 
 ---
+
+## 3. Tether SDK Integrations & Track Compliance
+
+PitchOS integrates the three Tether Developer Cup tracks:
+
+### Pears Track (P2P Discovery & Sync)
+* **Code Location**: [packages/sync-adapter](file:///home/lviffy/Projects/PitchOS/packages/sync-adapter) and [P2PClient](file:///home/lviffy/Projects/PitchOS/packages/sync-adapter/src/p2p-client.ts)
+* **Compliance**: When running within the Pear environment, `P2PClient` initializes a real `hyperswarm` instance, joins a DHT topic hash, and pipes connections directly into local `hypercore` instances for replicate synchronization. It does not rely on WebRTC.
+
+### QVAC Track (On-device Offline AI)
+* **Code Location**: [qvac-service.ts](file:///home/lviffy/Projects/PitchOS/apps/client/src/features/ai/qvac-service.ts)
+* **Compliance**: All workloads execute 100% locally. The service dynamically loads the `LLAMA_3_2_1B_INST_Q4_0` model via `@qvac/sdk` in the Pear WebGPU runtime and executes streaming inference offline. Cloud APIs are completely disabled.
+
+### WDK Track (Self-custodial Wallet Policies)
+* **Code Location**: [wallet-store.ts](file:///home/lviffy/Projects/PitchOS/apps/client/src/features/wallet/wallet-store.ts) and [wallet-adapter](file:///home/lviffy/Projects/PitchOS/packages/wallet-adapter)
+* **Compliance**: Initializes the `@tetherto/wdk` engine. It implements a self-custodial account and registers an active project policy (`usdt-spending-limit`) to deny any USDT transfer greater than 50.
+
+---
+
 
 ## 3. Step-by-Step Judging Validation Script (100% Offline Capable)
 
@@ -83,14 +129,22 @@ To verify the E2E capabilities of PitchOS, run a second client session in an Inc
 
 ---
 
-## 4. Workspaces & Structure
+## 5. Workspaces & Structure
 
 ```
 ├── apps
 │   ├── client             # Next.js UI, QVAC and DB State
+│   ├── next-app           # Supporting services (telemetry)
+│   ├── pear-desktop       # Pear Electron Desktop shell
 │   └── relay-service      # WebSocket signaling fallback
 ├── packages
 │   ├── shared-types       # Common data structures and auth contracts
-│   ├── sync-adapter       # P2P client and Hypercore mock
-│   └── wallet-adapter     # Web Crypto keypair and DID utilities
+│   ├── sync-adapter       # P2P client and Hypercore/Autobase modules
+│   └── wallet-adapter     # WDK integration and P-256 Web Crypto keys
 ```
+
+---
+
+## 6. License
+
+This project is licensed under the Apache License, Version 2.0. See the [LICENSE](file:///home/lviffy/Projects/PitchOS/LICENSE) file for details.

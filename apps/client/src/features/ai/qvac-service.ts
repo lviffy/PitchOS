@@ -1,6 +1,109 @@
 import { RosterEntry, Match } from '@pitchos/shared-types';
 import { db } from '../../lib/db';
 import { getLocalWallet, getWalletBalances } from '../wallet/wallet-store';
+import { PLAYBOOKS, PlaybookEntry } from './playbooks';
+
+export interface ParsedVoiceCommand {
+  eventType: 'goal' | 'yellow_card' | 'red_card' | 'substitution';
+  playerId?: string;
+  playerOutId?: string;
+  details?: string;
+  minute?: number;
+}
+
+export function searchLocalPlaybooks(query: string): string {
+  const normalized = query.toLowerCase();
+  const scored = PLAYBOOKS.map(pb => {
+    let score = 0;
+    pb.keywords.forEach(kw => {
+      if (normalized.includes(kw.toLowerCase())) score += 5;
+    });
+    const words = normalized.split(/\s+/);
+    words.forEach(w => {
+      if (w.length > 3) {
+        if (pb.title.toLowerCase().includes(w)) score += 2;
+        if (pb.content.toLowerCase().includes(w)) score += 1;
+      }
+    });
+    return { pb, score };
+  }).filter(item => item.score > 0)
+    .sort((a, b) => b.score - a.score);
+
+  if (scored.length === 0) return '';
+  return scored.slice(0, 2).map(item => `[Playbook: ${item.pb.title}]\n${item.pb.content}`).join('\n\n');
+}
+
+export function parseVoiceMatchCommand(transcript: string, players: RosterEntry[]): ParsedVoiceCommand | null {
+  const norm = transcript.toLowerCase();
+  
+  let eventType: 'goal' | 'yellow_card' | 'red_card' | 'substitution' | null = null;
+  if (norm.includes('goal') || norm.includes('score')) {
+    eventType = 'goal';
+  } else if (norm.includes('yellow') || norm.includes('caution') || norm.includes('card')) {
+    if (norm.includes('yellow')) eventType = 'yellow_card';
+    else if (norm.includes('red')) eventType = 'red_card';
+  } else if (norm.includes('sub') || norm.includes('substitution') || norm.includes('replace') || norm.includes('change')) {
+    eventType = 'substitution';
+  }
+
+  if (!eventType) return null;
+
+  let minute: number | undefined = undefined;
+  const minMatch = norm.match(/(?:minute\s*|at\s*|min\s*)?(\d+)/);
+  if (minMatch) {
+    minute = parseInt(minMatch[1], 10);
+  }
+
+  const foundPlayers = players.filter(p => norm.includes(p.name.toLowerCase()));
+
+  let playerId: string | undefined = undefined;
+  let playerOutId: string | undefined = undefined;
+  let details: string | undefined = undefined;
+
+  if (eventType === 'substitution') {
+    if (foundPlayers.length >= 2) {
+      const p0Index = norm.indexOf(foundPlayers[0].name.toLowerCase());
+      const p1Index = norm.indexOf(foundPlayers[1].name.toLowerCase());
+      
+      const outIndex = norm.match(/out|off|replaces/)?.index ?? -1;
+      if (outIndex !== -1) {
+        if (Math.abs(outIndex - p0Index) < Math.abs(outIndex - p1Index)) {
+          playerOutId = foundPlayers[0].playerId;
+          playerId = foundPlayers[1].playerId;
+        } else {
+          playerOutId = foundPlayers[1].playerId;
+          playerId = foundPlayers[0].playerId;
+        }
+      } else {
+        playerOutId = foundPlayers[0].playerId;
+        playerId = foundPlayers[1].playerId;
+      }
+    } else if (foundPlayers.length === 1) {
+      playerOutId = foundPlayers[0].playerId;
+    }
+  } else {
+    if (foundPlayers.length > 0) {
+      playerId = foundPlayers[0].playerId;
+    }
+    
+    if (eventType === 'goal') {
+      if (norm.includes('away') || norm.includes('opponent') || norm.includes('them')) {
+        details = 'away';
+      } else {
+        details = 'home';
+      }
+    }
+  }
+
+  return {
+    eventType,
+    playerId,
+    playerOutId,
+    details,
+    minute
+  };
+}
+
 
 export interface AIResponse {
   answer: string;
@@ -177,8 +280,16 @@ export async function generateAICoachResponse(
     toolData = await executeLocalTool(detectedTool, players);
   }
 
+  // Local RAG Playbook Search
+  const playbookData = searchLocalPlaybooks(question);
+
   let fallbackAnswer = '';
-  if (detectedTool === 'getRosterData') {
+  if (playbookData) {
+    fallbackAnswer = `**[QVAC AI Coach — Tactical Playbook Citations (Local RAG)]**\n\n` +
+      `Here is the matching tactical literature retrieved from your on-device playbook repository:\n\n` +
+      `${playbookData}\n\n` +
+      `**Fallback Coach Feedback**: Try configuring a Pear swarm to test these tactics collaboratively with your staff.`;
+  } else if (detectedTool === 'getRosterData') {
     fallbackAnswer = `**[QVAC AI Coach — Roster Intelligence]**\n\n` +
       `Here is the active squad roster retrieved directly from your on-device database:\n\n` +
       `${toolData}\n\n` +
@@ -216,6 +327,9 @@ export async function generateAICoachResponse(
   let finalPrompt = `You are a football coach. Answer this question: ${question}. Context: Roster has ${players.length} players.`;
   if (detectedTool && toolData) {
     finalPrompt += `\nLocal Database Context [Tool: ${detectedTool}]:\n${toolData}`;
+  }
+  if (playbookData) {
+    finalPrompt += `\nLocal Playbooks References:\n${playbookData}`;
   }
 
   const answer = await runLocalInference(finalPrompt, fallbackAnswer);
