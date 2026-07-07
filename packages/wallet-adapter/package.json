@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "@pitchos/shared-types": "*",
-    "@tetherto/wdk": "^1.0.0-beta.13"
+    "@tetherto/wdk": "^1.0.0-beta.13",
+    "bech32": "^2.0.0"
   },
   "devDependencies": {
     "typescript": "^5.0.0"

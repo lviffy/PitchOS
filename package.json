@@ -22,6 +22,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "bare-runtime-linux-x64": "^1.30.3",
     "pear-electron": "^1.7.28"
   },
   "license": "Apache-2.0"

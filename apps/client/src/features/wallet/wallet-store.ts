@@ -1,4 +1,4 @@
-import { generateWalletKeyPair, WalletKeyPair, createPitchOSWDKInstance } from '@pitchos/wallet-adapter';
+import { generateWalletKeyPair, WalletKeyPair, createPitchOSWDKInstance, deriveLiquidTestnetAddress } from '@pitchos/wallet-adapter';
 import { WalletTransaction } from '@pitchos/shared-types';
 import { db } from '../../lib/db';
 
@@ -10,6 +10,7 @@ export interface WalletState extends WalletKeyPair {
 // Global active WDK references for policy enforcement
 export let activeWDKInstance: any = null;
 export let activeWDKAccount: any = null;
+export let activeLiquidAccount: any = null;
 
 export async function initWDK(seedPhrase: string) {
   if (activeWDKInstance) return activeWDKInstance;
@@ -62,7 +63,9 @@ export async function initWDK(seedPhrase: string) {
 
       activeWDKInstance = wdk;
       activeWDKAccount = await wdk.getAccount('pitchos', 0);
-      console.log('[WDK] Active WDK Account registered with policy rule: Limit transfers > 50 USDT');
+      activeLiquidAccount = await wdk.getAccount('liquid-testnet', 0);
+      console.log('[WDK] Active PitchOS WDK Account registered.');
+      console.log('[WDK] Active Liquid Testnet Account registered.');
     }
   } catch (err) {
     console.warn('[WDK] Engine registration failed, falling back to browser crypto:', err);
@@ -100,6 +103,7 @@ export function deleteLocalWallet() {
   localStorage.removeItem('pitchos_wallet');
   activeWDKInstance = null;
   activeWDKAccount = null;
+  activeLiquidAccount = null;
 }
 
 export async function getWalletBalances(did: string): Promise<{ balance: number; points: number }> {
@@ -228,13 +232,56 @@ export async function createNewWallet(): Promise<WalletState> {
     await initWDK(keys.seedPhrase);
   }
 
-  // Seed initial welcome tokens on ledger
-  await requestFaucet(wallet.did, 'USDT', 100, wallet.privateKeyHex);
-  await requestFaucet(wallet.did, 'Points', 500, wallet.privateKeyHex);
-
   const initialBalances = await getWalletBalances(wallet.did);
   return {
     ...wallet,
     ...initialBalances
   };
+}
+
+export async function getLiquidAddressAndBalances(publicKeyHex: string): Promise<{ address: string, usdt: number, lbtc: number }> {
+  try {
+    const address = await deriveLiquidTestnetAddress(publicKeyHex);
+    let usdt = 0;
+    let lbtc = 0;
+    if (activeLiquidAccount) {
+      const lbtcBalSat = await activeLiquidAccount.getBalance();
+      lbtc = Number(lbtcBalSat) / 1e8;
+
+      const usdtBalSat = await activeLiquidAccount.getTokenBalance('b612eb46313a2cd6ebabd8b7a8eed5696e29898b87a43bff41c94f51acef9d73');
+      usdt = Number(usdtBalSat) / 1e8;
+    }
+    return {
+      address,
+      usdt,
+      lbtc
+    };
+  } catch (err) {
+    console.error('[wallet-store] Failed to fetch Liquid address/balances:', err);
+    return {
+      address: '',
+      usdt: 0,
+      lbtc: 0
+    };
+  }
+}
+
+export async function createLiquidTransaction(
+  recipientAddress: string,
+  amount: number,
+  assetSymbol: 'USDT' | 'BTC'
+): Promise<string> {
+  if (!activeLiquidAccount) {
+    throw new Error('Liquid Testnet WDK Account not initialized.');
+  }
+
+  console.log('[WDK] Routing Liquid Testnet transfer through policy proxy...');
+  const tokenIdentifier = assetSymbol === 'USDT' ? 'USDT' : 'BTC';
+  const txResult = await activeLiquidAccount.transfer({
+    amount,
+    recipient: recipientAddress,
+    token: tokenIdentifier
+  });
+
+  return txResult.hash;
 }

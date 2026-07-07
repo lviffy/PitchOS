@@ -5,6 +5,7 @@
     "": {
       "name": "pitchos-monorepo",
       "dependencies": {
+        "bare-runtime-linux-x64": "^1.30.3",
         "pear-electron": "^1.7.28",
       },
       "devDependencies": {
@@ -111,6 +112,7 @@
       "dependencies": {
         "@pitchos/shared-types": "*",
         "@tetherto/wdk": "^1.0.0-beta.13",
+        "bech32": "^2.0.0",
       },
       "devDependencies": {
         "typescript": "^5.0.0",
@@ -739,6 +741,8 @@
     "bare-zlib": ["bare-zlib@1.4.0", "", { "dependencies": { "bare-stream": "^2.0.0" }, "peerDependencies": { "bare-buffer": "*" }, "optionalPeers": ["bare-buffer"] }, "sha512-xd0DT6nrj7553IkvfpJJSJiN0SM1OWQ4ycP53DET2zuF9UmDOh5XmWr+cA8pwkvS7YQyGHEm+kwtCZsUctUh5A=="],
 
     "baseline-browser-mapping": ["baseline-browser-mapping@2.10.42", "", { "bin": "dist/cli.cjs" }, "sha512-c/jurFrDLyui7o1J86yLkRu4LMsTYcBohveus7/I2Hzdn9KIP2bdJPTue/lR1KH46enoPbD77GKeSYNdyPoD3Q=="],
+
+    "bech32": ["bech32@2.0.0", "", {}, "sha512-LcknSilhIGatDAsY1ak2I8VtGaHNhgMSYVxFrGLXv+xLHytaKZKcaUJJUE7qmBr7h33o5YQwP55pMI0xmkpJwg=="],
 
     "big-sparse-array": ["big-sparse-array@1.0.3", "", {}, "sha512-6RjV/3mSZORlMdpUaQ6rUSpG637cZm0//E54YYGtQg1c1O+AbZP8UTdJ/TchsDZcTVLmyWZcseBfp2HBeXUXOQ=="],
 

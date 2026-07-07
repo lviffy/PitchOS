@@ -10,7 +10,9 @@ import {
   createTransaction, 
   requestFaucet,
   initWDK,
-  activeWDKInstance
+  activeWDKInstance,
+  getLiquidAddressAndBalances,
+  createLiquidTransaction
 } from './wallet-store';
 import { trackEvent } from '../../lib/telemetry';
 import { db } from '../../lib/db';
@@ -30,6 +32,17 @@ export default function WalletSetup({ onWalletLoaded }: WalletSetupProps) {
   const [faucetLoading, setFaucetLoading] = useState(false);
   const [importKey, setImportKey] = useState('');
   const [error, setError] = useState('');
+
+  // Liquid Testnet specific states
+  const [liquidAddr, setLiquidAddr] = useState('');
+  const [liquidUsdt, setLiquidUsdt] = useState(0);
+  const [liquidBtc, setLiquidBtc] = useState(0);
+  const [liquidBalancesLoading, setLiquidBalancesLoading] = useState(false);
+
+  // States for sending Liquid Testnet transactions
+  const [sendLiquidRecipient, setSendLiquidRecipient] = useState('');
+  const [sendLiquidAmount, setSendLiquidAmount] = useState('');
+  const [sendLiquidAsset, setSendLiquidAsset] = useState<'USDT' | 'BTC'>('USDT');
 
   // Donation and store states
   const [donateRecipient, setDonateRecipient] = useState('');
@@ -59,6 +72,19 @@ export default function WalletSetup({ onWalletLoaded }: WalletSetupProps) {
         .reverse()
         .sortBy('timestamp');
       setTransactions(list);
+
+      // Fetch Liquid Testnet balances
+      try {
+        setLiquidBalancesLoading(true);
+        const liqData = await getLiquidAddressAndBalances(localKeys.publicKeyHex);
+        setLiquidAddr(liqData.address);
+        setLiquidUsdt(liqData.usdt);
+        setLiquidBtc(liqData.lbtc);
+      } catch (err) {
+        console.warn('Failed to load Liquid balances:', err);
+      } finally {
+        setLiquidBalancesLoading(false);
+      }
     }
   }, [onWalletLoaded]);
 
@@ -84,28 +110,54 @@ export default function WalletSetup({ onWalletLoaded }: WalletSetupProps) {
 
   const handleImport = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (importKey.length < 32) {
-      setError('Invalid key length. Must be a P-256 private key hex.');
+    const cleanKey = importKey.trim();
+    if (!cleanKey) {
+      setError('Please enter a seed phrase or private key.');
       return;
     }
     setLoading(true);
     setError('');
     try {
-      const publicKeyHex = importKey.substring(0, 64);
+      let publicKeyHex = '';
+      let privateKeyHex = '';
+      let seedPhrase = '';
+
+      if (cleanKey.includes(' ')) {
+        // It's a seed phrase!
+        seedPhrase = cleanKey;
+        let hash = 0;
+        for (let i = 0; i < seedPhrase.length; i++) {
+          hash = (hash << 5) - hash + seedPhrase.charCodeAt(i);
+          hash |= 0;
+        }
+        privateKeyHex = Math.abs(hash).toString(16).padStart(8, '0').repeat(8).substring(0, 64);
+        publicKeyHex = privateKeyHex.split('').reverse().join('');
+      } else {
+        // It's a private key hex
+        if (cleanKey.length < 32) {
+          setError('Invalid private key length.');
+          setLoading(false);
+          return;
+        }
+        privateKeyHex = cleanKey;
+        publicKeyHex = privateKeyHex.split('').reverse().join('').substring(0, 64);
+        seedPhrase = 'imported-wallet';
+      }
+
       const did = `did:pitchos:${publicKeyHex}`;
       
       const keyInfo = {
         publicKeyHex,
-        privateKeyHex: importKey,
+        privateKeyHex,
         did,
-        seedPhrase: 'imported-wallet'
+        seedPhrase
       };
       
       localStorage.setItem('pitchos_wallet', JSON.stringify(keyInfo));
       trackEvent('wallet_imported', { action: 'import', category: 'wallet', success: true });
       await loadWalletData();
-    } catch {
-      setError('Import failed: verify key format.');
+    } catch (err: any) {
+      setError(`Import failed: ${err.message || 'verify format'}`);
     } finally {
       setLoading(false);
     }
@@ -172,6 +224,55 @@ export default function WalletSetup({ onWalletLoaded }: WalletSetupProps) {
       await loadWalletData();
     } catch (err: any) {
       setTxError(`Payment submission failed: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSendLiquid = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!wallet) return;
+    const amount = parseFloat(sendLiquidAmount);
+    if (isNaN(amount) || amount <= 0) {
+      setTxError('Please enter a valid amount.');
+      return;
+    }
+    if (!sendLiquidRecipient.startsWith('tlq1')) {
+      setTxError('Recipient must be a valid Liquid Testnet address (tlq1...).');
+      return;
+    }
+
+    setLoading(true);
+    setTxError('');
+    setTxSuccess('');
+    try {
+      const txid = await createLiquidTransaction(
+        sendLiquidRecipient,
+        amount,
+        sendLiquidAsset
+      );
+
+      setTxSuccess(`Liquid transaction broadcasted successfully! TXID: ${txid.slice(0, 16)}...`);
+      setSendLiquidAmount('');
+      setSendLiquidRecipient('');
+      
+      // Save locally to history
+      await db.transactions.put({
+        id: Math.random().toString(36).substring(2, 9),
+        txHash: txid,
+        senderDid: wallet.did,
+        recipientDid: `liquid:${sendLiquidRecipient}`,
+        amount: amount,
+        currency: sendLiquidAsset === 'USDT' ? 'USDT' : 'Points',
+        type: 'transfer',
+        timestamp: Date.now(),
+        signature: 'liquid_tx_broadcast'
+      });
+
+      trackEvent('liquid_tx_sent', { action: 'send_liquid', category: 'payment', success: true });
+      await loadWalletData();
+    } catch (err: any) {
+      setTxError(`Liquid payment failed: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -294,6 +395,45 @@ export default function WalletSetup({ onWalletLoaded }: WalletSetupProps) {
                 )}
               </div>
 
+              {/* Liquid Testnet Card */}
+              <div className="bg-bg-dark border border-border-dark p-4 rounded-xl mt-4 space-y-3">
+                <span className="block text-[10px] text-text-secondary uppercase tracking-widest font-bold flex items-center gap-1">
+                  <span className="w-2 h-2 bg-pitch-gold rounded-full"></span>
+                  Liquid Testnet Node (WDK)
+                </span>
+                <div>
+                  <label className="block text-[9px] font-bold text-text-secondary uppercase mb-0.5">Liquid Address</label>
+                  <div className="bg-card-dark border border-border-dark px-2 py-1 rounded text-[10px] text-pitch-gold break-all font-mono select-all">
+                    {liquidAddr || 'Loading...'}
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-center text-xs">
+                  <div className="bg-card-dark border border-border-dark p-2 rounded">
+                    <span className="block text-[9px] text-text-secondary uppercase">L-USDT</span>
+                    <span className="font-bold text-text-primary">
+                      {liquidBalancesLoading ? '...' : `${liquidUsdt.toFixed(2)} ₮`}
+                    </span>
+                  </div>
+                  <div className="bg-card-dark border border-border-dark p-2 rounded">
+                    <span className="block text-[9px] text-text-secondary uppercase">L-BTC</span>
+                    <span className="font-bold text-text-primary">
+                      {liquidBalancesLoading ? '...' : `${liquidBtc.toFixed(6)} BTC`}
+                    </span>
+                  </div>
+                </div>
+                <div className="text-[10px] text-text-secondary leading-normal text-center pt-1 border-t border-border-dark">
+                  Need testnet tokens?{' '}
+                  <a
+                    href="https://liquidtestnet.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary-green hover:underline font-bold"
+                  >
+                    Claim Liquid Testnet Faucet &rarr;
+                  </a>
+                </div>
+              </div>
+
               <button
                 onClick={handleClear}
                 className="w-full bg-pitch-red hover:bg-opacity-80 text-white font-semibold py-2.5 px-4 rounded-xl transition duration-200"
@@ -383,6 +523,62 @@ export default function WalletSetup({ onWalletLoaded }: WalletSetupProps) {
             </form>
           </div>
 
+          {/* Liquid Testnet Payments */}
+          <div className="bg-card-dark border border-border-dark rounded-xl p-6 space-y-4">
+            <h3 className="font-sans text-xl font-bold text-text-primary flex items-center gap-2">
+              <span className="w-2.5 h-2.5 bg-pitch-gold rounded-full"></span>
+              Liquid Testnet Payments
+            </h3>
+            <p className="text-xs text-text-secondary">
+              Broadcast transactions to the Liquid Network. Covered by active WDK policies (e.g. USDT spending limit of 50).
+            </p>
+            <form onSubmit={handleSendLiquid} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-bold text-text-secondary uppercase mb-1">Recipient Liquid Address</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="tlq1..."
+                    value={sendLiquidRecipient}
+                    onChange={e => setSendLiquidRecipient(e.target.value)}
+                    className="w-full bg-bg-dark border border-border-dark rounded-xl px-4 py-2.5 text-xs text-text-primary focus:outline-none focus:border-pitch-gold font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-text-secondary uppercase mb-1">Asset</label>
+                  <select
+                    value={sendLiquidAsset}
+                    onChange={e => setSendLiquidAsset(e.target.value as 'USDT' | 'BTC')}
+                    className="w-full bg-bg-dark border border-border-dark rounded-xl px-3 py-2.5 text-xs text-text-primary focus:outline-none focus:border-pitch-gold font-sans"
+                  >
+                    <option value="USDT">L-USDT</option>
+                    <option value="BTC">L-BTC</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-text-secondary uppercase mb-1">Amount</label>
+                  <input
+                    type="number"
+                    required
+                    step="any"
+                    placeholder="e.g. 10"
+                    value={sendLiquidAmount}
+                    onChange={e => setSendLiquidAmount(e.target.value)}
+                    className="w-full bg-bg-dark border border-border-dark rounded-xl px-4 py-2.5 text-xs text-text-primary focus:outline-none focus:border-pitch-gold"
+                  />
+                </div>
+              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="bg-pitch-gold hover:bg-opacity-90 text-black text-xs font-bold py-2 px-6 rounded-xl transition disabled:opacity-50 uppercase tracking-wider"
+              >
+                {loading ? 'Broadcasting...' : 'Send Liquid Transaction'}
+              </button>
+            </form>
+          </div>
+
           {/* Merchandise Payments */}
           <div className="bg-card-dark border border-border-dark rounded-xl p-6 space-y-4">
             <h3 className="font-sans text-xl font-bold text-text-primary">Merchandise Store</h3>
@@ -448,6 +644,17 @@ export default function WalletSetup({ onWalletLoaded }: WalletSetupProps) {
                             <td className="py-2.5 font-mono text-[10px] text-text-secondary" title={tx.txHash}>
                               <span className="text-[9px] text-text-secondary/50 font-bold mr-1">{isExpanded ? '▼' : '▶'}</span>
                               {tx.txHash.slice(0, 14)}...
+                              {tx.txHash.length === 64 && !tx.txHash.startsWith('tx_') && (
+                                <a
+                                  href={`https://blockstream.info/liquidtestnet/tx/${tx.txHash}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={e => e.stopPropagation()}
+                                  className="text-pitch-gold hover:underline font-bold ml-2 text-[9px] inline-flex items-center gap-0.5"
+                                >
+                                  Explorer &nearr;
+                                </a>
+                              )}
                             </td>
                             <td className="py-2.5">
                               <span className={`px-2 py-0.5 rounded text-[11px] font-semibold uppercase ${
@@ -532,16 +739,16 @@ export default function WalletSetup({ onWalletLoaded }: WalletSetupProps) {
 
         <div className="relative flex py-1 items-center">
           <div className="flex-grow border-t border-border-dark"></div>
-          <span className="flex-shrink mx-3 text-text-secondary text-[10px] uppercase tracking-wider">Or Import Key</span>
+          <span className="flex-shrink mx-3 text-text-secondary text-[10px] uppercase tracking-wider">Or Restore / Import</span>
           <div className="flex-grow border-t border-border-dark"></div>
         </div>
 
         <form onSubmit={handleImport} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="block text-[10px] font-bold text-text-secondary uppercase tracking-wider">Private Key Hex</label>
+            <label className="block text-[10px] font-bold text-text-secondary uppercase tracking-wider">Seed Phrase / Private Key Hex</label>
             <input
               type="password"
-              placeholder="Enter P-256 private key hex"
+              placeholder="Enter seed phrase or private key hex"
               value={importKey}
               onChange={(e) => setImportKey(e.target.value)}
               className="w-full bg-bg-dark border border-border-dark px-3 py-2.5 text-xs text-text-primary focus:outline-none focus:border-primary-green font-mono"
