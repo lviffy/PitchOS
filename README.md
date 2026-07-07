@@ -41,11 +41,23 @@ To evaluate the full Tether developer stack (real P2P swarming and on-device AI 
 
 Running in the Pear container enables real `hyperswarm` discovery, `hypercore` sync replication, and `@qvac/sdk` on-device Vulkan LLM inference:
 
+**On Linux/macOS:**
 ```bash
 # Make the startup script executable and run it
 chmod +x ./start-dev.sh
 ./start-dev.sh
 ```
+
+**On Windows:**
+You can use either Command Prompt (CMD) or PowerShell:
+```cmd
+# Command Prompt (CMD)
+start-dev.bat
+
+# PowerShell
+.\start-dev.ps1
+```
+
 This script boots the Next.js frontend, backend/relay servers, and launches the sovereign **Pear Desktop Application**.
 
 #### Option B: Standard Browser Sandbox (Fallback Mode)

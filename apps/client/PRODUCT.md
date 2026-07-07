@@ -26,3 +26,4 @@ Minimalist, high-tech terminal/decentralized. The visual system is dark, precise
 - WCAG AA standard compliance with high-contrast text ratios for outdoor usage (glare under daylight).
 - Dark mode optimized with high contrast ratios (minimum 4.5:1 for body copy).
 - Support for `prefers-reduced-motion` to keep animations minimal or instant.
+
