@@ -2,161 +2,237 @@
 
 PitchOS is an offline-first, decentralized operating system for grassroots football clubs to manage rosters, tournaments, live match scoring, prediction pools, and payments — **without a central database or internet dependency**.
 
-Designed for the **Tether Developers Cup 2026**.
+Designed and engineered for the **Tether Developers Cup 2026**.
 
 ---
 
-## 1. Project Architecture
+## 1. System Architecture
 
-PitchOS operates using a decoupled, sovereign architecture:
+PitchOS operates using a decoupled, sovereign, monorepo architecture. The application layers are split into distinct workspaces:
 
-*   **Client-Local Core (`apps/client`)**: Next.js App Router, Tailwind CSS v4, Dexie (IndexedDB local wrapper), and Local Storage (self-custodial wallet private keys).
-*   **Decentralized Sync (`packages/sync-adapter`)**: Replicates append-only log events using `HypercoreMock` blocks. Runs P2P replication fallbacks over our WebSocket relay.
-*   **Web Crypto Wallet (`packages/wallet-adapter`)**: Client-side P-256 ECDSA key pair generator. Derives identity DIDs of format `did:pitchos:<pubkey>`.
-*   **On-Device QVAC AI Coach (`apps/client/src/features/ai`)**: Local diagnostic execution engine for player performance feedback, tactical assistant drills, and prediction rationale logic.
-*   **WebSocket Relay (`apps/relay-service`)**: Stateless Node signaling proxy helping NAT-traversal and connection coordination.
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                        Next.js Client (apps/client)                    │
+│                                                                        │
+│  ┌───────────────────────┐ ┌───────────────────────┐ ┌──────────────┐  │
+│  │   UI (Pages / Roster) │ │  AI Coach / RAG       │ │ Wallet Setup │  │
+│  └───────────┬───────────┘ └───────────┬───────────┘ └──────┬───────┘  │
+│              │                         │                    │          │
+│              └─────────────────────────┼────────────────────┘          │
+│                                        ▼                               │
+│                         Dexie Database / IndexedDB                     │
+│                                        ▲                               │
+│                                        │                               │
+│                         ┌──────────────┴──────────────┐                │
+│                         │   packages/sync-adapter     │                │
+│                         │   (P2P replication stream)  │                │
+│                         └──────────────┬──────────────┘                │
+│                                        │                               │
+│              ┌─────────────────────────┴─────────────────────────┐     │
+│              ▼ (Pear Environment)                                ▼ (Browser Fallback) │
+│       Hyperswarm DHT &                                  WebSocket Relay│
+│       Hypercore Log                                     Service        │
+└──────────────┬───────────────────────────────────────────────────┼─────┘
+               │                                                   │
+               ▼                                                   ▼
+       Native P2P Peers                                     Stateless Broadcast
+```
+
+### Monorepo Workspaces & Structure
+*   **Client Core (`apps/client`)**: Next.js App Router, Tailwind CSS v4, Dexie (IndexedDB wrapper), and Local Storage (for private key persistence).
+*   **Decentralized Sync (`packages/sync-adapter`)**: Manages the append-only logs using `Hypercore` and `Autobase`. Implements conflict resolution and coordinates replication.
+*   **Self-Custodial Wallet (`packages/wallet-adapter`)**: Client-side P-256 ECDSA key pair generator. Integrates the Tether Wallet Development Kit (WDK) and manages Liquid Network transactions.
+*   **On-Device QVAC AI Coach (`apps/client/src/features/ai`)**: Local inference engine streaming token completions using the QVAC SDK and fallback heuristic rules.
+*   **WebSocket Relay (`apps/relay-service`)**: Stateless Bun/WebSocket signaling proxy to facilitate NAT-traversal and event broadcasting for standard browser fallbacks.
 
 ---
 
-## 2. Quick Start & Execution
+## 2. Tether SDK Integrations & Technical Deep-Dive
 
-Run the entire suite locally. NPM workspaces are configured.
+PitchOS implements the three Tether Developer Cup tracks:
 
-### Prerequisites
+### A. Pears Track (P2P Discovery & Sync)
+* **Code Location**: [`packages/sync-adapter/src/p2p-client.ts`](./packages/sync-adapter/src/p2p-client.ts) and [`packages/sync-adapter/src/index.ts`](./packages/sync-adapter/src/index.ts)
+* **Design Decision**: Peer-to-peer data replication utilizes a dual-mode synchronization client:
+  1. **Native Pear Runtime Mode**: Initializes a `Hyperswarm` instance, creates a SHA-256 hash of the human-readable swarm topic, joins the DHT topic, and pipes TCP streams directly into local `hypercore` instances.
+  2. **Standard Browser Fallback Mode**: If running outside the Pear container, the client communicates via `WebSocket` to `apps/relay-service`. Signed event blocks are serialized and broadcast to all topic-registered peers.
+* **Conflict Resolution**: Roster edits, match events, and message mutations are serialized as cryptographically signed log entries. Multi-writer logs are merged and sorted chronologically using timestamp indexing, with deduplication performed against the entry signature hash.
 
-To evaluate the full Tether developer stack (real P2P swarming and on-device AI inference), you should run the application inside the Pear Desktop container.
-
-1. **Install Pear CLI** globally:
-   ```bash
-   npm install -g pear
-   ```
-2. **Install Bun** (if not installed):
-   ```bash
-   curl -fsSL https://bun.sh/install | bash
-   ```
-
-### Execution Options
-
-#### Option A: Pear Desktop Container (Recommended for full P2P & Local AI testing)
-
-Running in the Pear container enables real `hyperswarm` discovery, `hypercore` sync replication, and `@qvac/sdk` on-device Vulkan LLM inference:
-
-**On Linux/macOS:**
-```bash
-# Make the startup script executable and run it
-chmod +x ./start-dev.sh
-./start-dev.sh
+```typescript
+export interface LogEntry<T = any> {
+  seq: number;
+  author: string;
+  signature: string;
+  timestamp: number;
+  payload: T;
+}
 ```
 
-**On Windows:**
-You can use either Command Prompt (CMD) or PowerShell:
-```cmd
-# Command Prompt (CMD)
-start-dev.bat
+---
 
-# PowerShell
-.\start-dev.ps1
+### B. QVAC Track (On-Device Offline AI)
+* **Code Location**: [`apps/client/src/features/ai/qvac-service.ts`](./apps/client/src/features/ai/qvac-service.ts)
+* **Design Decision**: 100% of LLM execution runs on the client. At runtime, the service queries `LLAMA_3_2_1B_INST_Q4_0` via `@qvac/sdk` in the Pear WebGPU runtime (utilizing Vulkan/WebGPU hardware acceleration).
+* **AI Pipelines**:
+  * **Offline RAG**: Queries search a local tactical playbook database using keyword matching and substring scoring, appending playbooks directly into the LLM system prompt.
+  * **Tool Intent Detection**: Categorizes questions about rosters, match history, or wallet balances, queries IndexedDB tables locally, and injects data directly into the prompt context.
+  * **Post-Match Diagnostics**: Generates match summaries, MVP evaluations, and algorithmic player ratings:
+    $$\text{Rating} = 7.0 + (\text{goals} \times 1.5) - (\text{cards} \times 0.8) + \text{position\_bonus}$$
+  * **Match Probability Prediction**: Deterministically calculates probabilities using team name hashes and prompts local Llama for 3 tactical bullet points.
+
+---
+
+### C. WDK Track (Self-Custodial Wallet Policies)
+* **Code Location**: [`apps/client/src/features/wallet/wallet-store.ts`](./apps/client/src/features/wallet/wallet-store.ts) and [`packages/wallet-adapter/src/index.ts`](./packages/wallet-adapter/src/index.ts)
+* **Design Decision**: Initializes the `@tetherto/wdk` engine. We subclass WDK's `WalletManager` and `IWalletAccount` base classes for two discrete payment adapters:
+  1. **PitchOS Ledger**: An offline, on-device ledger stored in IndexedDB. All balance movements are signed locally using browser-native Web Crypto P-256 ECDSA keypairs.
+  2. **Liquid Testnet**: Generates witness program scripts using SHA-256 and Bech32 encoding to derive standard `tlq1q...` Liquid testnet addresses. Queries asset balances (L-USDT and L-BTC) against Blockstream's Esplora APIs.
+* **Spending Limits Policy**: Employs WDK policy evaluation rules to intercept transfer actions. A project-level spending limit policy (`usdt-spending-limit`) rejects transfers exceeding 50 USDT:
+
+```typescript
+wdk.registerPolicy({
+  id: 'usdt-spending-limit',
+  name: 'USDT Spending Limit',
+  scope: 'project',
+  rules: [{
+    name: 'Limit Rule',
+    reason: 'USDT transaction exceeds the active policy spending limit of 50 USDT.',
+    operation: 'transfer',
+    action: 'DENY',
+    conditions: [
+      (context) => {
+        const amount = Number(context.params?.amount || 0);
+        const token = context.params?.token || 'USDT';
+        return token === 'USDT' && amount > 50;
+      }
+    ]
+  }]
+});
 ```
 
-This script boots the Next.js frontend, backend/relay servers, and launches the sovereign **Pear Desktop Application**.
+---
 
-#### Option B: Standard Browser Sandbox (Fallback Mode)
+## 3. Dynamic Degradation Grid
 
-If you only want to test the UI logic in a standard browser:
+PitchOS degrades gracefully depending on the hosting environment, ensuring zero application crashes when native desktop tools are unavailable:
+
+| Feature Layer | Pear Desktop Container | Standard Web Sandbox | Offline Sandbox |
+|---|---|---|---|
+| **P2P Discovery** | Direct Kademlia DHT | WebSocket Signaling | Disabled (Local Only) |
+| **Sync Log** | Disk-Backed Hypercores | In-Memory Core Mock | In-Memory Core Mock |
+| **AI Inference** | On-Device GPU Llama-3 | Rule-Based Fallback | Rule-Based Fallback |
+| **Identity / Keys** | WDK Mnemonic Seed | CSPRNG Web Crypto | CSPRNG Web Crypto |
+| **Ledger Policies** | WDK Rule Execution | Browser Ledger Emulation | Browser Ledger Emulation |
+| **Liquid Network** | Blockstream Esplora API | Blockstream Esplora API | Offline Cache |
+
+---
+
+## 4. Quick Start & Local Execution
+
+PitchOS uses Bun workspaces for high-speed local package resolution.
+
+### Option A: Pear Desktop Container (Recommended for full P2P & Local AI testing)
+
+Running in the Pear container enables real `hyperswarm` discovery, `hypercore` sync replication, and `@qvac/sdk` on-device WebGPU LLM inference:
+
+**1. Install CLI Prereqs:**
+```bash
+# Install Pear CLI globally
+npm install -g pear
+
+# Install Bun (if not installed)
+curl -fsSL https://bun.sh/install | bash
+```
+
+**2. Launch Developers Suite:**
+* **Linux/macOS:**
+  ```bash
+  chmod +x ./start-dev.sh
+  ./start-dev.sh
+  ```
+* **Windows CMD:**
+  ```cmd
+  start-dev.bat
+  ```
+* **Windows PowerShell:**
+  ```powershell
+  .\start-dev.ps1
+  ```
+
+This script concurrently boots the Next.js frontend on `localhost:3000`, the WebSocket relay on `localhost:4000`, and opens the sovereign **Pear Desktop Application**.
+
+---
+
+### Option B: Standard Browser Sandbox (Fallback Mode)
+
+To test the application flow inside a standard browser:
 
 ```bash
-# Install dependencies
+# Install Monorepo dependencies
 npm install
 
-# Start development servers
+# Start local dev servers
 npm run dev
 ```
-Open `http://localhost:3000` in your browser. Note that in standard browsers, network sync will fall back to the WebSocket signaling relay, and AI operations will fall back to local rule-based heuristics.
+Open `http://localhost:3000` in your browser. 
 
 ---
 
-## 3. Tether SDK Integrations & Track Compliance
+## 5. Step-by-Step E2E Judging Script
 
-PitchOS integrates the three Tether Developer Cup tracks:
+Open two side-by-side browser sessions (e.g. Chrome Standard and Chrome Incognito) pointing to `http://localhost:3000` to evaluate the entire pipeline:
 
-### Pears Track (P2P Discovery & Sync)
-* **Code Location**: [packages/sync-adapter](file:///home/lviffy/Projects/PitchOS/packages/sync-adapter) and [P2PClient](file:///home/lviffy/Projects/PitchOS/packages/sync-adapter/src/p2p-client.ts)
-* **Compliance**: When running within the Pear environment, `P2PClient` initializes a real `hyperswarm` instance, joins a DHT topic hash, and pipes connections directly into local `hypercore` instances for replicate synchronization. It does not rely on WebRTC.
-
-### QVAC Track (On-device Offline AI)
-* **Code Location**: [qvac-service.ts](file:///home/lviffy/Projects/PitchOS/apps/client/src/features/ai/qvac-service.ts)
-* **Compliance**: All workloads execute 100% locally. The service dynamically loads the `LLAMA_3_2_1B_INST_Q4_0` model via `@qvac/sdk` in the Pear WebGPU runtime and executes streaming inference offline. Cloud APIs are completely disabled.
-
-### WDK Track (Self-custodial Wallet Policies)
-* **Code Location**: [wallet-store.ts](file:///home/lviffy/Projects/PitchOS/apps/client/src/features/wallet/wallet-store.ts) and [wallet-adapter](file:///home/lviffy/Projects/PitchOS/packages/wallet-adapter)
-* **Compliance**: Initializes the `@tetherto/wdk` engine. It implements a self-custodial account and registers an active project policy (`usdt-spending-limit`) to deny any USDT transfer greater than 50.
-
----
-
-
-## 3. Step-by-Step Judging Validation Script (100% Offline Capable)
-
-To verify the E2E capabilities of PitchOS, run a second client session in an Incognito window:
-
-### Step 1: Self-Custodial Wallet Onboarding (< 1 Minute)
-1. Go to `http://localhost:3000`.
+### Step 1: Self-Custodial Wallet Onboarding (< 1 Min)
+1. Navigate to `http://localhost:3000`.
 2. Click **Create New Wallet**.
-3. A P-256 keypair is generated locally. Note the derived `did:pitchos:...` identity.
-4. You start with **500 USDT** and **1000 Loyalty Points** (mock balances).
+3. A P-256 keypair is generated locally using Web Crypto. Note the derived `did:pitchos:<pubkey>` format.
+4. The local faucet deposits **500 USDT** and **1000 Loyalty Points** into the local DB transaction table via two signed ledger entries.
 
-### Step 2: Roster & Sync Swarm Connect
-1. In the **Club Management** tab, type a sync topic (e.g. `wolves-derby-2026`) and click **Join Sync Swarm**.
-2. Go to your incognito session and join the *same* swarm topic. Note the green **Sync Connected** status indicator.
-3. On Browser A, click **Create Club** (e.g. "London Wolves").
-4. On Browser A, click **Add Player** (e.g. "Sarah", Midfielder, Jersey #10).
-5. Open Browser B: the club profile and Sarah's roster profile appear automatically under 1 second.
-6. Check the network tab: no external APIs or cloud databases were queried.
+### Step 2: DHT Roster Synchronization
+1. Under the **Club Management** tab, type a sync topic (e.g., `wolves-derby-2026`) and click **Join Sync Swarm**.
+2. Open your incognito window and join the *same* topic. Note the green **Sync Connected** status badge.
+3. On Browser A, click **Create Club** (e.g., "London Wolves") and click **Add Player** (e.g., "Sarah", Midfielder, #10).
+4. View Browser B: Sarah's profile and the club card populate automatically under 1 second.
+5. Inspect the network tab: no REST APIs or centralized servers were queried.
 
-### Step 3: Live Match Center & QVAC AI Feedback
-1. Go to the **Match Center** tab.
-2. Schedule a match: "London Wolves" vs "Manchester Red".
-3. Select the scheduled match in the list, and click **Start Match Live**.
-4. Log events: a goal (select Sarah) and a substitution.
-5. In your incognito session, the scoreboard and timeline update live in real time.
-6. Click **End Match & Run AI Analytics**.
-7. The match stops. QVAC AI generates a comprehensive technical report, tactical recommendations, standout MVP name, and player ratings in under 2 seconds.
+### Step 3: Match Logging & On-Device AI Feedback
+1. Go to the **Match Center** tab and click **Schedule Match** ("London Wolves" vs "Manchester Red").
+2. Select the match and click **Start Match Live**.
+3. Log events: add a goal for Sarah and a yellow card. Watch Browser B update instantly.
+4. Click **End Match & Run AI Analytics**.
+5. QVAC AI computes player ratings, identifies the MVP, and streams a tactical report locally in under 2 seconds.
 
-### Step 4: Knockout Tournaments & Payment Escrows
-1. Go to the **Tournaments** tab.
-2. Initialize a tournament (e.g. "Summer Cup", fee = 100 Points, max teams = 4).
-3. On Browser A, register "London Wolves" and "Liverpool FC".
-4. On Browser B, register "Manchester Red" and "Chelsea FC".
-5. Note that registering deducts 100 points from your balance and appends a signed WDK tx hash to the ledger.
-6. Click **Generate Bracket & Start**.
-7. The visual knockout tree displays the Semi-finals.
-8. Go to Match Center, play/complete the fixtures, and observe the winners automatically advancing to the Grand Final.
+### Step 4: Knockout Tournaments & Payout Escrows
+1. Under the **Tournaments** tab, initialize a tournament ("Summer Cup", fee = 100 Points).
+2. On Browser A, register "London Wolves" and "Liverpool FC". Note that the fee is deducted via WDK transactions.
+3. On Browser B, register "Manchester Red" and "Chelsea FC".
+4. Click **Generate Bracket & Start** to render the visual semi-final tree.
+5. Complete the fixtures in the Match Center to advance the winning teams automatically.
 
-### Step 5: Prediction Circles & Payout Settlements
-1. Go to the **Predictions** tab.
-2. Create a prediction pool for an upcoming match (e.g. fee = 100 points).
-3. Open the pool: QVAC AI automatically generates winning probabilities and bulleted reasons.
-4. Submit a prediction (e.g. Home Win). Entry fee points are escrowed.
-5. Go to Match Center, complete the match, and return to Predictions.
-6. Click **Distribute Points Escrow**: correct predictors are paid out and points accrue immediately in their wallet balance.
+### Step 5: Prediction Circles & Escrow Settlement
+1. Navigate to the **Predictions** tab and create a prediction pool for the grand final.
+2. Observe QVAC generating pre-match win probabilities and bulleted reasons.
+3. Submit a prediction (your entry fee is escrowed in the ledger).
+4. Resolve the match, return to predictions, and click **Distribute Points Escrow** to pay correct predictors.
 
 ---
 
-## 5. Workspaces & Structure
+## 6. Project Workspaces
 
 ```
 ├── apps
 │   ├── client             # Next.js UI, QVAC and DB State
-│   ├── next-app           # Supporting services (telemetry)
+│   ├── next-app           # Supporting services (telemetry stub)
 │   ├── pear-desktop       # Pear Electron Desktop shell
 │   └── relay-service      # WebSocket signaling fallback
 ├── packages
-│   ├── shared-types       # Common data structures and auth contracts
+│   ├── shared-types       # Common data structures and interfaces
 │   ├── sync-adapter       # P2P client and Hypercore/Autobase modules
 │   └── wallet-adapter     # WDK integration and P-256 Web Crypto keys
 ```
 
 ---
 
-## 6. License
+## 7. License
 
-This project is licensed under the Apache License, Version 2.0. See the [LICENSE](file:///home/lviffy/Projects/PitchOS/LICENSE) file for details.
+This project is licensed under the Apache License, Version 2.0. See the [LICENSE](./LICENSE) file for details.

@@ -24,6 +24,10 @@ if (
 export const metadata: Metadata = {
   title: "PitchOS — Decentralized Football OS",
   description: "Offline-first, P2P operating system for grassroots football clubs. Manage rosters, tournaments, live scoring, and prediction pools without a central database.",
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+  },
 };
 
 export default function RootLayout({

@@ -27,6 +27,7 @@ export default function WalletSetup({ onWalletLoaded }: WalletSetupProps) {
   const [wallet, setWallet] = useState<WalletState | null>(null);
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [loading, setLoading] = useState(false);
+  const [walletLoading, setWalletLoading] = useState(true);
   const [showSeed, setShowSeed] = useState(false);
   const [expandedTxId, setExpandedTxId] = useState<string | null>(null);
   const [faucetLoading, setFaucetLoading] = useState(false);
@@ -86,10 +87,11 @@ export default function WalletSetup({ onWalletLoaded }: WalletSetupProps) {
         setLiquidBalancesLoading(false);
       }
     }
+    setWalletLoading(false);
   }, [onWalletLoaded]);
 
   useEffect(() => {
-    loadWalletData();
+    loadWalletData().finally(() => setWalletLoading(false));
   }, [loadWalletData]);
 
   const handleCreate = async () => {
@@ -318,6 +320,18 @@ export default function WalletSetup({ onWalletLoaded }: WalletSetupProps) {
       setLoading(false);
     }
   };
+
+  if (walletLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="flex gap-1.5">
+          <span className="w-2 h-2 bg-primary-green rounded-none animate-bounce" style={{ animationDelay: '0ms' }} />
+          <span className="w-2 h-2 bg-primary-green rounded-none animate-bounce" style={{ animationDelay: '150ms' }} />
+          <span className="w-2 h-2 bg-primary-green rounded-none animate-bounce" style={{ animationDelay: '300ms' }} />
+        </div>
+      </div>
+    );
+  }
 
   if (wallet) {
     return (

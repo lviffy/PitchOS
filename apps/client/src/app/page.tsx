@@ -22,9 +22,10 @@ import {
   ShieldCheck,
   Globe,
   Lightning,
+  Wallet,
 } from '@phosphor-icons/react';
 
-type DashboardTab = 'club' | 'match' | 'tournament' | 'prediction' | 'ai' | 'analytics' | 'admin';
+type DashboardTab = 'club' | 'match' | 'tournament' | 'prediction' | 'ai' | 'analytics' | 'admin' | 'wallet';
 
 const TABS: { id: DashboardTab; label: string; Icon: React.ElementType }[] = [
   { id: 'club', label: 'Club', Icon: UsersThree },
@@ -33,6 +34,7 @@ const TABS: { id: DashboardTab; label: string; Icon: React.ElementType }[] = [
   { id: 'prediction', label: 'Predictions', Icon: Target },
   { id: 'ai', label: 'QVAC AI', Icon: Brain },
   { id: 'analytics', label: 'Analytics', Icon: ChartBar },
+  { id: 'wallet', label: 'Wallet', Icon: Wallet },
   { id: 'admin', label: 'Admin', Icon: GearSix },
 ];
 
@@ -319,6 +321,7 @@ export default function Home() {
             {activeTab === 'prediction' && <PredictionView />}
             {activeTab === 'ai' && <AICoachPanel />}
             {activeTab === 'analytics' && <AnalyticsDashboard />}
+            {activeTab === 'wallet' && <WalletSetup onWalletLoaded={(w) => setWallet(w)} />}
             {activeTab === 'admin' && <AdminDashboard />}
           </div>
         </div>
